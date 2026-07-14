@@ -5,116 +5,121 @@
 @section('subtitle', 'Espace Caissier')
 
 @section('content')
-<div x-data="{
-    catalog: [
-        { id: 1, name: 'Pain de mie', price: 2500, category: 'alimentation', stock: 15, image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=200&auto=format&fit=crop', reference: 'P001' },
-        { id: 2, name: 'Sucre 1Kg', price: 5000, category: 'alimentation', stock: 60, image: 'https://images.unsplash.com/photo-1581441363689-1f3c3c414635?q=80&w=200&auto=format&fit=crop', reference: 'P002' },
-        { id: 3, name: 'Huile 1L', price: 18500, category: 'alimentation', stock: 35, image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?q=80&w=200&auto=format&fit=crop', reference: 'P003' },
-        { id: 4, name: 'Lait entier 1L', price: 6500, category: 'boissons', stock: 45, image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?q=80&w=200&auto=format&fit=crop', reference: 'P004' },
-        { id: 5, name: 'Riz blanc 5Kg', price: 25000, category: 'alimentation', stock: 80, image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=200&auto=format&fit=crop', reference: 'P005' },
-        { id: 6, name: 'Savon', price: 2500, category: 'hygiene', stock: 90, image: 'https://images.unsplash.com/photo-1601049676099-e7ed07d825b0?q=80&w=200&auto=format&fit=crop', reference: 'P006' },
-        { id: 7, name: 'Farine 1kg', price: 4200, category: 'alimentation', stock: 28, image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=200&auto=format&fit=crop', reference: 'P007' },
-        { id: 8, name: 'Eau minérale 1,5L', price: 2500, category: 'boissons', stock: 64, image: 'https://images.unsplash.com/photo-1608885898957-a599fb15e841?q=80&w=200&auto=format&fit=crop', reference: 'P008' },
-        { id: 9, name: 'Coca-Cola 33cl', price: 700, category: 'boissons', stock: 120, image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=200&auto=format&fit=crop', reference: 'P009' },
-        { id: 10, name: 'Détergent 500g', price: 750, category: 'hygiene', stock: 42, image: 'https://images.unsplash.com/photo-1585421514738-01798e1a9b8f?q=80&w=200&auto=format&fit=crop', reference: 'P010' },
-        { id: 11, name: 'Papier toilette', price: 600, category: 'hygiene', stock: 55, image: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?q=80&w=200&auto=format&fit=crop', reference: 'P011' },
-        { id: 12, name: 'Biscuits', price: 1500, category: 'alimentation', stock: 35, image: 'https://images.unsplash.com/photo-1558961309-dbdf71799f54?q=80&w=200&auto=format&fit=crop', reference: 'P012' }
-    ],
-    
-    cart: [],
-    selectedCategory: 'tous',
-    searchQuery: '',
-    discount: 0,
-    paymentMethod: 'especes',
-    amountReceived: 0,
-    showCheckoutSuccess: false,
-    
-    addToCart(item) {
-        if (item.stock <= 0) {
-            alert('Ce produit est en rupture de stock !');
-            return;
-        }
-        let existing = this.cart.find(i => i.id === item.id);
-        if (existing) {
-            existing.qty++;
-        } else {
-            this.cart.push({ 
-                id: item.id, 
-                name: item.name, 
-                price: item.price, 
-                qty: 1, 
-                image: item.image,
-                reference: item.reference 
-            });
-        }
-    },
-    
-    removeFromCart(id) {
-        this.cart = this.cart.filter(i => i.id !== id);
-    },
-    
-    decreaseQty(item) {
-        if (item.qty > 1) {
-            item.qty--;
-        } else {
-            this.removeFromCart(item.id);
-        }
-    },
-    
-    increaseQty(item) {
-        item.qty++;
-    },
-    
-    get subtotal() {
-        return this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-    },
-    
-    get tva() {
-        return 0; // TVA désactivée par défaut
-    },
-    
-    get total() {
-        return Math.max(0, this.subtotal - this.discount);
-    },
-    
-    get change() {
-        return Math.max(0, this.amountReceived - this.total);
-    },
-    
-    clearCart() {
-        this.cart = [];
-        this.discount = 0;
-        this.amountReceived = 0;
-    },
-    
-    checkout() {
-        if (this.cart.length > 0 && this.amountReceived >= this.total) {
-            this.showCheckoutSuccess = true;
-        } else if (this.amountReceived < this.total) {
-            alert('Montant insuffisant !');
-        }
-    },
-    
-    closeCheckout() {
-        this.showCheckoutSuccess = false;
-        this.clearCart();
-    },
-    
-    suspendSale() {
-        if (this.cart.length > 0) {
-            alert('Vente suspendue avec succès !');
-            this.clearCart();
-        }
-    },
-    
-    printReceipt() {
-        alert('Impression du ticket en cours...');
-    },
-    
-    openCashDrawer() {
-        alert('Tiroir-caisse ouvert !');
+@php
+    $productsForJs = $products->map(function ($product) {
+        return [
+            'id' => $product->id,
+            'name' => $product->name,
+            'reference' => $product->reference,
+            'category' => $product->category,
+            'stock' => $product->stock,
+            'price' => (float) $product->selling_price,
+            'image' => $product->image_url,
+        ];
+    });
+@endphp
+<script>
+    function cashierData() {
+        return {
+            catalog: @json($productsForJs, JSON_UNESCAPED_SLASHES),
+            
+            cart: [],
+            selectedCategory: 'tous',
+            searchQuery: '',
+            discount: 0,
+            paymentMethod: 'especes',
+            amountReceived: 0,
+            showCheckoutSuccess: false,
+            
+            addToCart(item) {
+                if (item.stock <= 0) {
+                    alert('Ce produit est en rupture de stock !');
+                    return;
+                }
+                let existing = this.cart.find(i => i.id === item.id);
+                if (existing) {
+                    existing.qty++;
+                } else {
+                    this.cart.push({ 
+                        id: item.id, 
+                        name: item.name, 
+                        price: item.price, 
+                        qty: 1, 
+                        image: item.image,
+                        reference: item.reference 
+                    });
+                }
+            },
+            
+            removeFromCart(id) {
+                this.cart = this.cart.filter(i => i.id !== id);
+            },
+            
+            decreaseQty(item) {
+                if (item.qty > 1) {
+                    item.qty--;
+                } else {
+                    this.removeFromCart(item.id);
+                }
+            },
+            
+            increaseQty(item) {
+                item.qty++;
+            },
+            
+            get subtotal() {
+                return this.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            },
+            
+            get tva() {
+                return 0;
+            },
+            
+            get total() {
+                return Math.max(0, this.subtotal - this.discount);
+            },
+            
+            get change() {
+                return Math.max(0, this.amountReceived - this.total);
+            },
+            
+            clearCart() {
+                this.cart = [];
+                this.discount = 0;
+                this.amountReceived = 0;
+            },
+            
+            checkout() {
+                if (this.cart.length > 0 && this.amountReceived >= this.total) {
+                    this.showCheckoutSuccess = true;
+                } else if (this.amountReceived < this.total) {
+                    alert('Montant insuffisant !');
+                }
+            },
+            
+            closeCheckout() {
+                this.showCheckoutSuccess = false;
+                this.clearCart();
+            },
+            
+            suspendSale() {
+                if (this.cart.length > 0) {
+                    alert('Vente suspendue avec succès !');
+                    this.clearCart();
+                }
+            },
+            
+            printReceipt() {
+                alert('Impression du ticket en cours...');
+            },
+            
+            openCashDrawer() {
+                alert('Tiroir-caisse ouvert !');
+            }
+        };
     }
-}" class="space-y-4">
+</script>
+<div x-data="cashierData()" class="space-y-4">
 
     <!-- ============================================ -->
     <!-- MAIN LAYOUT: TWO COLUMNS                     -->

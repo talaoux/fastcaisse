@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test API Produits</title>
+    <meta name="csrf-token" content="">
+</head>
+<body>
+    <h1>Test API Produits</h1>
+    
+    <div>
+        <h2>1. Test GET /api/products</h2>
+        <button onclick="testGetProducts()">Tester GET</button>
+        <pre id="get-result">En attente...</pre>
+    </div>
+    
+    <div>
+        <h2>2. Test POST /api/products</h2>
+        <button onclick="testPostProduct()">Tester POST</button>
+        <pre id="post-result">En attente...</pre>
+    </div>
+    
+    <script>
+        // Get CSRF token from meta tag
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        function testGetProducts() {
+            fetch('/api/products')
+                .then(response => {
+                    document.getElementById('get-result').textContent = 
+                        'Status: ' + response.status + '\n' +
+                        'Status Text: ' + response.statusText;
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById('get-result').textContent += 
+                        '\n\nResponse Data:\n' + JSON.stringify(data, null, 2);
+                })
+                .catch(error => {
+                    document.getElementById('get-result').textContent = 
+                        'Error: ' + error.message;
+                });
+        }
+        
+        function testPostProduct() {
+            const product = {
+                name: 'Produit Test ' + new Date().toLocaleTimeString(),
+                price: 1500,
+                buy_price: 1000,
+                category: 'alimentation',
+                stock: 10,
+                min_stock: 5,
+                image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=100&auto=format&fit=crop'
+            };
+            
+            fetch('/api/products', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify(product)
+            })
+            .then(response => {
+                document.getElementById('post-result').textContent = 
+                    'Status: ' + response.status + '\n' +
+                    'Status Text: ' + response.statusText;
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('post-result').textContent += 
+                    '\n\nResponse Data:\n' + JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                document.getElementById('post-result').textContent = 
+                    'Error: ' + error.message;
+            });
+        }
+        
+        // Auto-test on load
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(testGetProducts, 500);
+        });
+    </script>
+</body>
+</html>

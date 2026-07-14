@@ -19,8 +19,26 @@
 @endsection
 
 @section('content')
-<div x-data="{
-    // Product Catalogue Data
+@php
+    $productsForJs = $products->map(function ($product) {
+        return [
+            'id' => $product->id,
+            'name' => $product->name,
+            'reference' => $product->reference,
+            'category' => $product->category,
+            'stock' => $product->stock,
+            'minStock' => $product->minimum_stock,
+            'buyPrice' => (float) $product->purchase_price,
+            'price' => (float) $product->selling_price,
+            'image' => $product->image_url,
+            'status' => $product->status,
+        ];
+    });
+@endphp
+<script>
+    function dashboardData() {
+        return {
+            // Product Catalogue Data
     catalog: [
         { id: 1, name: 'Pain de mie tranché', price: 2000, buyPrice: 1500, category: 'alimentation', stock: 15, minStock: 20, image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=100&auto=format&fit=crop' },
         { id: 2, name: 'Lait entier 1L', price: 1200, buyPrice: 900, category: 'boissons', stock: 120, minStock: 30, image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?q=80&w=100&auto=format&fit=crop' },
@@ -29,6 +47,7 @@
         { id: 5, name: 'Savon liquide 500ml', price: 3500, buyPrice: 2800, category: 'hygiene', stock: 45, minStock: 10, image: 'https://images.unsplash.com/photo-1601049676099-e7ed07d825b0?q=80&w=100&auto=format&fit=crop' },
         { id: 6, name: 'Biscuits au chocolat', price: 1500, buyPrice: 1100, category: 'alimentation', stock: 35, minStock: 12, image: 'https://images.unsplash.com/photo-1558961309-dbdf71799f54?q=80&w=100&auto=format&fit=crop' }
     ],
+    products: @json($productsForJs, JSON_UNESCAPED_SLASHES),
 
     // POS Cart State
     cart: [
@@ -89,7 +108,10 @@
         this.showCheckoutSuccess = false;
         this.clearCart();
     }
-}" class="space-y-8">
+        };
+    }
+</script>
+<div x-data="dashboardData()" class="space-y-8">
 
     <!-- ============================================ -->
     <!-- TAB 1: MAIN DASHBOARD                        -->
@@ -410,8 +432,9 @@
                     <option value="alimentation">Alimentation</option>
                     <option value="boissons">Boissons</option>
                     <option value="hygiene">Hygiène</option>
+                    <option value="divers">Divers</option>
                 </select>
-                <button @click="showAddProductModal = true" class="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl shadow-sm shadow-green-600/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
+                <button @click="window.location.href='{{ route('products.create') }}'" class="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl shadow-sm shadow-green-600/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
                     <i data-lucide="plus" class="w-4 h-4"></i>
                     <span>Ajouter un produit</span>
                 </button>
@@ -434,13 +457,13 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
-                        <template x-for="item in catalog" :key="item.id">
-                            <tr x-show="(selectedCategory === 'all' || item.category === selectedCategory) && (searchQuery === '' || item.name.toLowerCase().includes(searchQuery.toLowerCase()))" class="hover:bg-slate-50/50 transition-all">
+                        <template x-for="item in products" :key="item.id">
+                            <tr x-show="(selectedCategory === 'all' || item.category === selectedCategory) && (searchQuery === '' || item.name.toLowerCase().includes(searchQuery.toLowerCase()) || item.reference.toLowerCase().includes(searchQuery.toLowerCase()))" class="hover:bg-slate-50/50 transition-all">
                                 <td class="px-6 py-4 flex items-center space-x-3">
                                     <img class="w-10 h-10 rounded-lg object-cover bg-slate-100 border border-slate-100 flex-shrink-0" :src="item.image" :alt="item.name">
                                     <div>
                                         <span class="text-xs font-bold text-slate-900 block" x-text="item.name"></span>
-                                        <span class="text-[9px] font-semibold text-slate-500 block" x-text="'REF-' + (item.id * 123 + 4500)"></span>
+                                        <span class="text-[9px] font-semibold text-slate-500 block" x-text="item.reference"></span>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider" x-text="item.category"></td>
@@ -448,7 +471,7 @@
                                 <td class="px-6 py-4 text-xs font-bold text-green-600" x-text="new Intl.NumberFormat().format(item.price) + ' Ar'"></td>
                                 <td class="px-6 py-4">
                                     <span class="text-xs font-bold text-green-600" x-text="new Intl.NumberFormat().format(item.price - item.buyPrice) + ' Ar'"></span>
-                                    <span class="text-[9px] text-slate-500 font-medium block" x-text="Math.round(((item.price - item.buyPrice) / item.price) * 100) + '% marge'"></span>
+                                    <span class="text-[9px] text-slate-500 font-medium block" x-text="item.price > 0 ? Math.round(((item.price - item.buyPrice) / item.price) * 100) + '% marge' : '0% marge'"></span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center space-x-2">
@@ -460,10 +483,10 @@
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end space-x-2">
-                                        <button @click="alert('Modification du produit: ' + item.name)" class="p-1.5 text-slate-500 hover:text-green-600 rounded-lg hover:bg-slate-100 transition-all">
+                                        <button @click="window.location.href = '/products/' + item.id + '/edit'" class="p-1.5 text-slate-500 hover:text-green-600 rounded-lg hover:bg-slate-100 transition-all" title="Modifier">
                                             <i data-lucide="edit-2" class="w-4 h-4"></i>
                                         </button>
-                                        <button @click="if(confirm('Supprimer ' + item.name + ' ?')) { catalog = catalog.filter(i => i.id !== item.id) }" class="p-1.5 text-slate-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all">
+                                        <button @click="if(confirm('Voulez-vous vraiment supprimer ce produit ?')) document.getElementById('deleteForm' + item.id).submit()" class="p-1.5 text-slate-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all" title="Supprimer">
                                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                                         </button>
                                     </div>
@@ -472,6 +495,13 @@
                         </template>
                     </tbody>
                 </table>
+                    @foreach($products as $product)
+                        <form id="deleteForm{{ $product->id }}" action="{{ route('products.destroy', $product) }}" method="POST" class="hidden">
+                            @csrf
+                            @method('DELETE')
+                        </form>
+                    @endforeach
+                </div>
             </div>
             
             <!-- Table Footer Pagination Mockup -->
@@ -1012,6 +1042,141 @@
     // Re-initialize icons only when Alpine.js finishes updating
     document.addEventListener('alpine:initialized', function() {
         lucide.createIcons();
+    });
+
+    // Initialize Charts after DOM and Alpine are ready
+    document.addEventListener('alpine:initialized', function() {
+        // Sales Line Chart
+        const salesCtx = document.getElementById('salesChart');
+        if (salesCtx) {
+            new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'],
+                    datasets: [{
+                        label: 'Ventes (Ar)',
+                        data: [120000, 190000, 150000, 250000, 220000, 300000, 280000, 350000, 245000],
+                        borderColor: '#22C55E',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#22C55E',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: '#0F172A',
+                            padding: 12,
+                            titleFont: {
+                                size: 11,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 10
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return new Intl.NumberFormat('fr-FR').format(context.parsed.y) + ' Ar';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(203, 213, 225, 0.3)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return (value / 1000) + 'k';
+                                },
+                                font: {
+                                    size: 10
+                                },
+                                color: '#64748B'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10
+                                },
+                                color: '#64748B'
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+
+        // Category Doughnut Chart
+        const categoryCtx = document.getElementById('categoryChart');
+        if (categoryCtx) {
+            new Chart(categoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Alimentation', 'Boissons', 'Hygiène', 'Divers'],
+                    datasets: [{
+                        data: [45, 25, 15, 15],
+                        backgroundColor: [
+                            '#22C55E',
+                            '#2563EB',
+                            '#F59E0B',
+                            '#9333EA'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: '#0F172A',
+                            padding: 12,
+                            titleFont: {
+                                size: 11,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 10
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
     });
 </script>
 @endpush

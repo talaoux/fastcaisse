@@ -20,8 +20,8 @@
                 extend: {
                     colors: {
                         primary: {
-                            DEFAULT: '#2563EB', // Blue
-                            hover: '#1D4ED8',
+                            DEFAULT: '#22C55E', // Green (changed from blue)
+                            hover: '#16A34A',
                         },
                         success: {
                             DEFAULT: '#22C55E', // Green
@@ -89,90 +89,125 @@
 
     @stack('styles')
 </head>
-<body class="h-full overflow-x-hidden" x-data="{ activeTab: 'sales', mobileSidebarOpen: false }">
+<body class="h-full overflow-x-hidden">
 
-    <!-- Topbar -->
-    <header class="sticky top-0 z-30 flex h-[70px] items-center justify-between border-b border-slate-200 bg-white shadow-sm px-4 lg:px-6">
+    <!-- Main Content Layout -->
+    <div class="flex flex-col min-h-screen">
         
-        <!-- Left: Logo & Cash Register Info -->
-        <div class="flex items-center space-x-4">
-            <!-- Logo -->
-            <div class="flex items-center space-x-2.5">
-                <div class="p-2 bg-primary/10 rounded-xl text-primary flex items-center justify-center">
-                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Speed lines -->
-                        <path d="M2.5 7.5H5.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                        <path d="M1.5 11.5H4.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                        <path d="M3 15.5H5.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                        <!-- Shopping cart -->
-                        <path d="M8 5.5H9.5L12 13.5H19L21.5 7.5H10.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <!-- Wheels -->
-                        <circle cx="13" cy="18.5" r="1.5" fill="currentColor"/>
-                        <circle cx="18" cy="18.5" r="1.5" fill="currentColor"/>
-                    </svg>
+        <!-- Topbar -->
+        <header class="sticky top-0 z-20 flex h-20 items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur-md px-6 lg:px-8 shadow-sm">
+            
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-4">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-green-100 rounded-xl text-green-600 flex items-center justify-center shadow-sm shadow-green-500/10">
+                        <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Speed lines -->
+                            <path d="M2.5 7.5H5.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                            <path d="M1.5 11.5H4.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                            <path d="M3 15.5H5.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                            <!-- Shopping cart -->
+                            <path d="M8 5.5H9.5L12 13.5H19L21.5 7.5H10.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <!-- Wheels -->
+                            <circle cx="13" cy="18.5" r="1.5" fill="currentColor"/>
+                            <circle cx="18" cy="18.5" r="1.5" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <span class="text-2xl tracking-tighter text-slate-900 font-extrabold select-none">Fast<span class="text-green-600 font-semibold">caisse</span></span>
                 </div>
-                <div class="hidden sm:block">
-                    <span class="text-lg tracking-tighter text-slate-900 font-extrabold">Fast<span class="text-primary font-semibold">caisse</span></span>
-                    <div class="flex items-center gap-2">
+
+                <!-- Titles -->
+                <div class="hidden sm:block pl-4 border-l border-slate-200">
+                    <h1 class="text-xl font-bold tracking-tight text-slate-900">@yield('title', 'Nouvelle Vente')</h1>
+                    <p class="text-xs font-medium text-slate-500 mt-0.5">@yield('subtitle', 'Espace Caissier')</p>
+                </div>
+            </div>
+
+            <!-- Header Right Section -->
+            <div class="flex items-center space-x-4">
+                
+                <!-- Time & Date -->
+                <div class="hidden lg:flex items-center space-x-2 pl-3 border-l border-slate-200">
+                    <i data-lucide="clock" class="w-4 h-4 text-slate-500"></i>
+                    <div class="text-right">
+                        <div class="text-xs font-bold text-slate-900" id="currentTime">14:32</div>
+                        <div class="text-[10px] text-slate-500" id="currentDate">08/07/2026</div>
+                    </div>
+                </div>
+
+                <!-- Caisse ouverte Indicator -->
+                <div class="hidden md:flex items-center space-x-2 px-3 py-1.5 bg-green-50 rounded-xl border border-green-100">
+                    <div class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] font-bold text-green-600 uppercase tracking-wider block">Caisse ouverte</span>
                         <span class="text-xs font-bold text-slate-900">Caisse 01</span>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-600">
-                            <span class="h-1.5 w-1.5 rounded-full bg-success mr-1"></span>
-                            En ligne
-                        </span>
+                    </div>
+                </div>
+
+                <!-- Profile -->
+                <div class="relative" x-data="{ openProfile: false }" @click.away="openProfile = false">
+                    <button @click="openProfile = !openProfile" class="flex items-center space-x-2 p-1.5 hover:bg-slate-50 rounded-xl transition-all">
+                        <div class="relative">
+                            <img class="w-9 h-9 rounded-full object-cover border-2 border-white ring-2 ring-slate-100" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop" alt="Ravaka M.">
+                            <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white"></span>
+                        </div>
+                        <div class="hidden lg:block text-left">
+                            <h4 class="text-xs font-bold text-slate-900">Ravaka M.</h4>
+                            <span class="text-[10px] text-slate-500">Caissière</span>
+                        </div>
+                        <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500 transition-transform duration-200 hidden lg:block" :class="openProfile ? 'rotate-180' : ''"></i>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div x-show="openProfile"
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="transform opacity-0 scale-95"
+                         x-transition:enter-end="transform opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="transform opacity-100 scale-100"
+                         x-transition:leave-end="transform opacity-0 scale-95"
+                         class="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-[18px] shadow-lg py-2 z-50"
+                         style="display: none;">
+                        <a href="#" class="flex items-center space-x-2 px-4 py-2 text-xs text-slate-900 hover:bg-slate-50">
+                            <i data-lucide="user" class="w-4 h-4 text-slate-500"></i>
+                            <span>Mon Profil</span>
+                        </a>
+                        <a href="#" class="flex items-center space-x-2 px-4 py-2 text-xs text-slate-900 hover:bg-slate-50">
+                            <i data-lucide="settings" class="w-4 h-4 text-slate-500"></i>
+                            <span>Paramètres</span>
+                        </a>
+                        <div class="border-t border-slate-200 my-1"></div>
+                        <a href="#" class="flex items-center space-x-2 px-4 py-2 text-xs text-red-600 hover:bg-red-50">
+                            <i data-lucide="log-out" class="w-4 h-4 text-red-600"></i>
+                            <span>Déconnexion</span>
+                        </a>
                     </div>
                 </div>
             </div>
-        </div>
+        </header>
 
-        <!-- Center: Search Bar -->
-        <div class="flex-1 max-w-2xl mx-4 hidden md:block">
-            <div class="relative">
-                <input type="text" 
-                       placeholder="Rechercher un produit, code-barres ou référence..." 
-                       class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all">
-                <i data-lucide="search" class="absolute left-3 top-3 w-4 h-4 text-slate-500"></i>
+        <!-- Main Workspace Area -->
+        <main class="flex-1 p-6 lg:p-8">
+            <!-- Page content loaded dynamically -->
+            @yield('content')
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-auto py-6 px-6 lg:px-8 border-t border-slate-200 bg-white text-center flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p class="text-xs font-medium text-slate-500">© 2026 Fastcaisse - Tous droits réservés.</p>
+            <div class="flex items-center space-x-4">
+                <a href="#" class="text-xs text-slate-500 hover:text-slate-900 transition-all duration-200 font-medium">Documentation</a>
+                <a href="#" class="text-xs text-slate-500 hover:text-slate-900 transition-all duration-200 font-medium">Support</a>
+                <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-bold">v1.2.0</span>
             </div>
-        </div>
+        </footer>
+    </div>
 
-        <!-- Right: Notifications, Profile, Time -->
-        <div class="flex items-center space-x-3">
-            <!-- Notifications -->
-            <button class="relative p-2 text-slate-500 hover:text-slate-900 rounded-xl hover:bg-slate-100 transition-all">
-                <i data-lucide="bell" class="w-5 h-5"></i>
-                <span class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-danger text-[9px] font-bold text-white ring-2 ring-white">3</span>
-            </button>
-
-            <!-- Profile -->
-            <div class="flex items-center space-x-2 pl-3 border-l border-slate-200">
-                <img class="w-9 h-9 rounded-full object-cover border-2 border-slate-200" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop" alt="Ravaka M.">
-                <div class="hidden lg:block">
-                    <span class="text-xs font-bold text-slate-900 block leading-none">Ravaka M.</span>
-                    <span class="text-[10px] text-slate-500 block">Caissière</span>
-                </div>
-            </div>
-
-            <!-- Time & Date -->
-            <div class="hidden xl:flex items-center space-x-2 pl-3 border-l border-slate-200">
-                <i data-lucide="clock" class="w-4 h-4 text-slate-500"></i>
-                <div class="text-right">
-                    <div class="text-xs font-bold text-slate-900" id="currentTime">14:32</div>
-                    <div class="text-[10px] text-slate-500" id="currentDate">08/07/2026</div>
-                </div>
-            </div>
-
-            <!-- Logout -->
-            <button class="p-2 text-slate-500 hover:text-red-600 rounded-xl hover:bg-red-50 transition-all" title="Déconnexion">
-                <i data-lucide="log-out" class="w-5 h-5"></i>
-            </button>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="p-4 lg:p-6">
-        @yield('content')
-    </main>
-
-    <!-- Initialize Lucide icons -->
+    <!-- Initialize Lucide icons and yield page scripts -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             lucide.createIcons();

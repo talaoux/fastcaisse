@@ -58,6 +58,9 @@
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
     <!-- Alpine.js CDN (Deferred) -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
@@ -89,7 +92,7 @@
 
     @stack('styles')
 </head>
-<body class="h-full overflow-x-hidden" x-data="{ activeTab: 'dashboard', mobileSidebarOpen: false }">
+<body class="h-full overflow-x-hidden" x-data="{ activeTab: '{{ request()->routeIs('admin.dashboard') ? 'dashboard' : (request()->routeIs('products.*') ? 'products' : (request()->routeIs('admin.sales') || request()->routeIs('cashier.dashboard') ? 'sales' : (request()->routeIs('admin.stock') ? 'stock' : (request()->routeIs('admin.customers') ? 'customers' : 'dashboard')))) }}', mobileSidebarOpen: false }">
 
     <!-- Mobile Sidebar Backdrop -->
     <div x-show="mobileSidebarOpen" 
@@ -141,30 +144,30 @@
 
             <!-- Navigation Links -->
             <nav class="space-y-1">
-                <button @click="activeTab = 'dashboard'; mobileSidebarOpen = false" :class="activeTab === 'dashboard' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left">
+                <a href="{{ route('admin.dashboard') }}" @click="activeTab = 'dashboard'; mobileSidebarOpen = false" :class="activeTab === 'dashboard' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                     <span>Tableau de bord</span>
-                </button>
-                <button @click="activeTab = 'products'; mobileSidebarOpen = false" :class="activeTab === 'products' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left">
+                </a>
+                <a href="{{ route('products.index') }}" @click="activeTab = 'products'; mobileSidebarOpen = false" :class="activeTab === 'products' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left">
                     <i data-lucide="package" class="w-5 h-5"></i>
                     <span>Produits</span>
-                </button>
-                <button @click="activeTab = 'sales'; mobileSidebarOpen = false" :class="activeTab === 'sales' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left">
+                </a>
+                <a href="{{ route('admin.sales') }}" @click="activeTab = 'sales'; mobileSidebarOpen = false" :class="activeTab === 'sales' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left">
                     <i data-lucide="shopping-bag" class="w-5 h-5"></i>
                     <span>Ventes (Caisse)</span>
-                </button>
-                <button @click="activeTab = 'stock'; mobileSidebarOpen = false" :class="activeTab === 'stock' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left">
+                </a>
+                <a href="{{ route('admin.stock') }}" @click="activeTab = 'stock'; mobileSidebarOpen = false" :class="activeTab === 'stock' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left">
                     <i data-lucide="archive" class="w-5 h-5"></i>
                     <span>Stock</span>
-                </button>
-                <button @click="activeTab = 'customers'; mobileSidebarOpen = false" :class="activeTab === 'customers' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left">
+                </a>
+                <a href="{{ route('admin.customers') }}" @click="activeTab = 'customers'; mobileSidebarOpen = false" :class="activeTab === 'customers' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left">
                     <i data-lucide="users" class="w-5 h-5"></i>
                     <span>Clients</span>
-                </button>
-                <button @click="activeTab = 'settings'; mobileSidebarOpen = false" :class="activeTab === 'settings' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left">
+                </a>
+                <a href="#" @click="activeTab = 'settings'; mobileSidebarOpen = false" :class="activeTab === 'settings' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left">
                     <i data-lucide="settings" class="w-5 h-5"></i>
                     <span>Paramètres</span>
-                </button>
+                </a>
             </nav>
         </div>
 
@@ -225,30 +228,30 @@
 
             <!-- Menu Navigation Links -->
             <nav class="space-y-1">
-                <button @click="activeTab = 'dashboard'" :class="activeTab === 'dashboard' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20 hover:bg-primary/95' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left hover:translate-x-1">
+                <a href="{{ route('admin.dashboard') }}" @click="activeTab = 'dashboard'" :class="activeTab === 'dashboard' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20 hover:bg-primary/95' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left hover:translate-x-1">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                     <span>Tableau de bord</span>
-                </button>
-                <button @click="activeTab = 'products'" :class="activeTab === 'products' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20 hover:bg-primary/95' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left hover:translate-x-1">
+                </a>
+                <a href="{{ route('products.index') }}" @click="activeTab = 'products'" :class="activeTab === 'products' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20 hover:bg-primary/95' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left hover:translate-x-1">
                     <i data-lucide="package" class="w-5 h-5"></i>
                     <span>Produits</span>
-                </button>
-                <button @click="activeTab = 'sales'" :class="activeTab === 'sales' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20 hover:bg-primary/95' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left hover:translate-x-1">
+                </a>
+                <a href="{{ route('admin.sales') }}" @click="activeTab = 'sales'" :class="activeTab === 'sales' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20 hover:bg-primary/95' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left hover:translate-x-1">
                     <i data-lucide="shopping-bag" class="w-5 h-5"></i>
                     <span>Ventes (Caisse)</span>
-                </button>
-                <button @click="activeTab = 'stock'" :class="activeTab === 'stock' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20 hover:bg-primary/95' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left hover:translate-x-1">
+                </a>
+                <a href="{{ route('admin.stock') }}" @click="activeTab = 'stock'" :class="activeTab === 'stock' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20 hover:bg-primary/95' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left hover:translate-x-1">
                     <i data-lucide="archive" class="w-5 h-5"></i>
                     <span>Stock</span>
-                </button>
-                <button @click="activeTab = 'customers'" :class="activeTab === 'customers' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20 hover:bg-primary/95' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left hover:translate-x-1">
+                </a>
+                <a href="{{ route('admin.customers') }}" @click="activeTab = 'customers'" :class="activeTab === 'customers' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20 hover:bg-primary/95' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left hover:translate-x-1">
                     <i data-lucide="users" class="w-5 h-5"></i>
                     <span>Clients</span>
-                </button>
-                <button @click="activeTab = 'settings'" :class="activeTab === 'settings' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20 hover:bg-primary/95' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left hover:translate-x-1">
+                </a>
+                <a href="#" @click="activeTab = 'settings'" :class="activeTab === 'settings' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20 hover:bg-primary/95' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left hover:translate-x-1">
                     <i data-lucide="settings" class="w-5 h-5"></i>
                     <span>Paramètres</span>
-                </button>
+                </a>
             </nav>
         </div>
 
