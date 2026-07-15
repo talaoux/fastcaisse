@@ -24,12 +24,22 @@
             catalog: @json($productsForJs, JSON_UNESCAPED_SLASHES),
             
             cart: [],
-            selectedCategory: 'tous',
+            selectedCategory: 'all',
             searchQuery: '',
             discount: 0,
             paymentMethod: 'especes',
             amountReceived: 0,
             showCheckoutSuccess: false,
+            
+            get filteredProducts() {
+                return this.catalog.filter(item => {
+                    const categoryMatch = this.selectedCategory === 'all' || item.category === this.selectedCategory;
+                    const searchMatch = this.searchQuery === '' || 
+                        item.name.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+                        item.reference.toLowerCase().includes(this.searchQuery.toLowerCase());
+                    return categoryMatch && searchMatch;
+                });
+            },
             
             addToCart(item) {
                 if (item.stock <= 0) {
@@ -129,62 +139,66 @@
         <!-- LEFT COLUMN: Products (70%) -->
         <div class="xl:col-span-2 space-y-4">
             
+            <!-- Search Bar -->
+            <div class="bg-white rounded-[18px] p-4 border border-slate-200 shadow-sm">
+                <div class="relative">
+                    <input type="text" 
+                           x-model="searchQuery" 
+                           placeholder="Rechercher un produit (nom, référence)..."
+                           class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent transition-all">
+                    <i data-lucide="search" class="absolute left-3.5 top-3.5 w-4 h-4 text-slate-500"></i>
+                </div>
+                <!-- Results count -->
+                <div class="mt-2 text-[10px] text-slate-500 font-medium">
+                    <span x-text="filteredProducts.length + ' produit(s) trouvé(s)'"></span>
+                </div>
+            </div>
+            
             <!-- Category Filters -->
             <div class="bg-white rounded-[18px] p-4 border border-slate-200 shadow-sm">
                 <div class="flex flex-wrap gap-2">
-                    <button @click="selectedCategory = 'tous'" 
-                            :class="selectedCategory === 'tous' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'" 
+                    <button @click="selectedCategory = 'all'" 
+                            :class="selectedCategory === 'all' ? 'bg-green-600 text-white shadow-sm' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'" 
                             class="px-4 py-2 rounded-xl text-xs font-bold transition-all">
                         Tous
                     </button>
                     <button @click="selectedCategory = 'alimentation'" 
-                            :class="selectedCategory === 'alimentation' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'" 
+                            :class="selectedCategory === 'alimentation' ? 'bg-green-600 text-white shadow-sm' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'" 
                             class="px-4 py-2 rounded-xl text-xs font-bold transition-all">
                         Alimentation
                     </button>
                     <button @click="selectedCategory = 'boissons'" 
-                            :class="selectedCategory === 'boissons' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'" 
+                            :class="selectedCategory === 'boissons' ? 'bg-green-600 text-white shadow-sm' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'" 
                             class="px-4 py-2 rounded-xl text-xs font-bold transition-all">
                         Boissons
                     </button>
                     <button @click="selectedCategory = 'hygiene'" 
-                            :class="selectedCategory === 'hygiene' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'" 
+                            :class="selectedCategory === 'hygiene' ? 'bg-green-600 text-white shadow-sm' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'" 
                             class="px-4 py-2 rounded-xl text-xs font-bold transition-all">
                         Hygiène
                     </button>
-                    <button @click="selectedCategory = 'entretien'" 
-                            :class="selectedCategory === 'entretien' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'" 
-                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all">
-                        Entretien
-                    </button>
                     <button @click="selectedCategory = 'divers'" 
-                            :class="selectedCategory === 'divers' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'" 
+                            :class="selectedCategory === 'divers' ? 'bg-green-600 text-white shadow-sm' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'" 
                             class="px-4 py-2 rounded-xl text-xs font-bold transition-all">
                         Divers
-                    </button>
-                    <button @click="selectedCategory = 'promotions'" 
-                            :class="selectedCategory === 'promotions' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'" 
-                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all">
-                        Promotions
-                    </button>
-                    <button @click="selectedCategory = 'favoris'" 
-                            :class="selectedCategory === 'favoris' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'" 
-                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all">
-                        Favoris
                     </button>
                 </div>
             </div>
 
             <!-- Products Grid -->
             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                <template x-for="item in catalog" :key="item.id">
-                    <div x-show="(selectedCategory === 'tous' || item.category === selectedCategory) && (searchQuery === '' || item.name.toLowerCase().includes(searchQuery.toLowerCase()) || item.reference.toLowerCase().includes(searchQuery.toLowerCase()))" 
-                         @click="addToCart(item)"
+                <template x-for="item in filteredProducts" :key="item.id">
+                    <div @click="addToCart(item)"
                          :class="item.stock <= 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.03] hover:shadow-md'" 
                          class="bg-white rounded-[18px] p-3 border border-slate-200 shadow-sm transition-all duration-300 flex flex-col justify-between relative group overflow-hidden">
                         
                         <!-- Category Badge -->
-                        <span class="absolute top-2.5 right-2.5 px-2 py-1 bg-blue-100 text-blue-600 text-[9px] font-bold uppercase tracking-wider rounded-lg z-10" x-text="item.category">
+                        <span class="absolute top-2.5 right-2.5 px-2 py-1 bg-green-100 text-green-600 text-[9px] font-bold uppercase tracking-wider rounded-lg z-10" x-text="item.category">
+                        </span>
+
+                        <!-- Stock Status -->
+                        <span x-show="item.stock <= 0" class="absolute top-2.5 left-2.5 px-2 py-1 bg-red-100 text-red-600 text-[9px] font-bold uppercase tracking-wider rounded-lg z-10">
+                            Rupture
                         </span>
 
                         <!-- Product Image -->
@@ -199,11 +213,22 @@
                                 <h4 class="text-xs font-bold text-slate-900 line-clamp-2 leading-tight" x-text="item.name"></h4>
                             </div>
                             <div class="flex items-center justify-between pt-1.5 border-t border-slate-100">
-                                <span class="text-sm font-extrabold text-blue-600" x-text="new Intl.NumberFormat().format(item.price) + ' Ar'"></span>
-                                <button class="p-1.5 bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white rounded-lg transition-all">
+                                <span class="text-sm font-extrabold text-green-600" x-text="new Intl.NumberFormat().format(item.price) + ' Ar'"></span>
+                                <button class="p-1.5 bg-green-100 text-green-600 group-hover:bg-green-600 group-hover:text-white rounded-lg transition-all">
                                     <i data-lucide="plus" class="w-3.5 h-3.5"></i>
                                 </button>
                             </div>
+                        </div>
+                    </div>
+                </template>
+                
+                <!-- Empty State -->
+                <template x-if="filteredProducts.length === 0">
+                    <div class="col-span-2 sm:col-span-3 lg:col-span-4">
+                        <div class="flex flex-col items-center justify-center py-12 text-center text-slate-500">
+                            <i data-lucide="package" class="w-12 h-12 text-slate-300 mb-2"></i>
+                            <span class="text-xs font-semibold text-slate-900">Aucun produit trouvé</span>
+                            <span class="text-[10px] mt-1">Vérifiez vos filtres ou votre recherche</span>
                         </div>
                     </div>
                 </template>

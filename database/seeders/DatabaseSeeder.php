@@ -13,7 +13,8 @@ class DatabaseSeeder extends Seeder
      * Seed the application's database.
      */
     public function run(): void
-    {
+    {        // Seed users with roles
+        $this->call(\Database\Seeders\UserSeeder::class);
         // Create sample customers
         $customers = [
             ['name' => 'Client de passage', 'email' => 'passage@example.com', 'phone' => '0320000000', 'status' => true],
@@ -100,5 +101,11 @@ class DatabaseSeeder extends Seeder
                 Product::create($product);
             }
         }
+
+            // Seed demo stock movements (optional)
+            $this->call(\Database\Seeders\StockMovementSeeder::class);
+            
+            // Seed demo sales
+            $this->call(\Database\Seeders\SaleSeeder::class);
     }
 }

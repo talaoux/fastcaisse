@@ -4,8 +4,7 @@
     <span x-text="activeTab === 'dashboard' ? 'Tableau de bord' : 
                  activeTab === 'products' ? 'Gestion des Produits' : 
                  activeTab === 'sales' ? 'Caisse & Vente POS' : 
-                 activeTab === 'stock' ? 'Suivi du Stock' : 
-                 activeTab === 'customers' ? 'Fichier Clients' : 'Paramètres Système'">
+                 activeTab === 'stock' ? 'Suivi du Stock' : 'Paramètres Système'">
     </span>
 @endsection
 
@@ -13,8 +12,7 @@
     <span x-text="activeTab === 'dashboard' ? 'Bienvenue Admin, voici un aperçu de votre activité aujourd\'hui.' : 
                  activeTab === 'products' ? 'Configurez vos produits, catégories, prix d\'achat et vente.' : 
                  activeTab === 'sales' ? 'Saisissez les ventes rapidement, gérez le panier et encaissez.' : 
-                 activeTab === 'stock' ? 'Ajustez le stock, surveillez les alertes de rupture et inventaires.' : 
-                 activeTab === 'customers' ? 'Consultez l\'historique d\'achats, la fidélité et les crédits.' : 'Ajustez les taux de taxe, l\'imprimante ticket, les devises et caissiers.'">
+                 activeTab === 'stock' ? 'Ajustez le stock, surveillez les alertes de rupture et inventaires.' : 'Ajustez les taux de taxe, l\'imprimante ticket, les devises et caissiers.'">
     </span>
 @endsection
 
@@ -34,6 +32,19 @@
             'status' => $product->status,
         ];
     });
+    
+    // Format metrics for display
+    $revenue = $metrics['revenue'] ?? 0;
+    $profit = $metrics['profit'] ?? 0;
+    $transactions = $metrics['transactions'] ?? 0;
+    $averageCart = $metrics['average_cart'] ?? 0;
+    
+    // Prepare chart data
+    $chartLabels = $salesChartData['labels'] ?? [];
+    $chartData = $salesChartData['data'] ?? [];
+    
+    // Prepare category data
+    $categoryData = $categoryBreakdown ?? [];
 @endphp
 <script>
     function dashboardData() {
@@ -113,9 +124,6 @@
 </script>
 <div x-data="dashboardData()" class="space-y-8">
 
-    <!-- ============================================ -->
-    <!-- TAB 1: MAIN DASHBOARD                        -->
-    <!-- ============================================ -->
     <div x-show="activeTab === 'dashboard'" class="space-y-8" x-transition:enter="transition-all ease-out duration-300">
         
         <!-- Row 1: 4 Stats Cards -->
@@ -129,12 +137,12 @@
                     </div>
                 </div>
                 <div class="space-y-1">
-                    <h3 class="text-2xl font-bold text-slate-900 tracking-tight">2 450 000 Ar</h3>
+                    <h3 class="text-2xl font-bold text-slate-900 tracking-tight">{{ number_format($revenue, 0, ',', ' ') }} Ar</h3>
                     <div class="flex items-center space-x-1.5">
                         <span class="inline-flex items-center text-[11px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
-                            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 mr-0.5"></i> +12%
+                            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 mr-0.5"></i> Aujourd'hui
                         </span>
-                        <span class="text-[10px] text-slate-500 font-medium">par rapport à hier</span>
+                        <span class="text-[10px] text-slate-500 font-medium">Chiffre d'affaires du jour</span>
                     </div>
                 </div>
             </div>
@@ -148,12 +156,12 @@
                     </div>
                 </div>
                 <div class="space-y-1">
-                    <h3 class="text-2xl font-bold text-slate-900 tracking-tight">820 000 Ar</h3>
+                    <h3 class="text-2xl font-bold text-slate-900 tracking-tight">{{ number_format($profit, 0, ',', ' ') }} Ar</h3>
                     <div class="flex items-center space-x-1.5">
                         <span class="inline-flex items-center text-[11px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
-                            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 mr-0.5"></i> +8%
+                            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 mr-0.5"></i> Marge nette
                         </span>
-                        <span class="text-[10px] text-slate-500 font-medium">par rapport à hier</span>
+                        <span class="text-[10px] text-slate-500 font-medium">Bénéfice du jour</span>
                     </div>
                 </div>
             </div>
@@ -167,12 +175,12 @@
                     </div>
                 </div>
                 <div class="space-y-1">
-                    <h3 class="text-2xl font-bold text-slate-900 tracking-tight">156</h3>
+                    <h3 class="text-2xl font-bold text-slate-900 tracking-tight">{{ $transactions }}</h3>
                     <div class="flex items-center space-x-1.5">
                         <span class="inline-flex items-center text-[11px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
-                            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 mr-0.5"></i> +8.3%
+                            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 mr-0.5"></i> Aujourd'hui
                         </span>
-                        <span class="text-[10px] text-slate-500 font-medium">par rapport à hier</span>
+                        <span class="text-[10px] text-slate-500 font-medium">Transactions du jour</span>
                     </div>
                 </div>
             </div>
@@ -186,12 +194,12 @@
                     </div>
                 </div>
                 <div class="space-y-1">
-                    <h3 class="text-2xl font-bold text-slate-900 tracking-tight">15 700 Ar</h3>
+                    <h3 class="text-2xl font-bold text-slate-900 tracking-tight">{{ number_format($averageCart, 0, ',', ' ') }} Ar</h3>
                     <div class="flex items-center space-x-1.5">
-                        <span class="inline-flex items-center text-[11px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">
-                            <i data-lucide="arrow-down-right" class="w-3.5 h-3.5 mr-0.5"></i> -2.1%
+                        <span class="inline-flex items-center text-[11px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 mr-0.5"></i> Aujourd'hui
                         </span>
-                        <span class="text-[10px] text-slate-500 font-medium">par rapport à hier</span>
+                        <span class="text-[10px] text-slate-500 font-medium">Panier moyen du jour</span>
                     </div>
                 </div>
             </div>
@@ -215,6 +223,92 @@
                 <div class="relative h-80 w-full">
                     <canvas id="salesChart"></canvas>
                 </div>
+                <script>
+                    // Sales chart data
+                    const salesChartData = {
+                        labels: @json($chartLabels),
+                        datasets: [{
+                            label: 'Chiffre d\'affaires (Ar)',
+                            data: @json($chartData),
+                            borderColor: '#16a34a',
+                            backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#16a34a',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointHoverRadius: 6
+                        }]
+                    };
+                    
+                    // Initialize chart when DOM is ready
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const ctx = document.getElementById('salesChart');
+                        if (ctx) {
+                            new Chart(ctx, {
+                                type: 'line',
+                                data: salesChartData,
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: {
+                                        legend: {
+                                            display: false
+                                        },
+                                        tooltip: {
+                                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                            padding: 12,
+                                            cornerRadius: 8,
+                                            titleFont: {
+                                                size: 11,
+                                                weight: 'bold'
+                                            },
+                                            bodyFont: {
+                                                size: 10
+                                            },
+                                            callbacks: {
+                                                label: function(context) {
+                                                    return new Intl.NumberFormat('fr-FR').format(context.parsed.y) + ' Ar';
+                                                }
+                                            }
+                                        }
+                                    },
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true,
+                                            grid: {
+                                                color: 'rgba(148, 163, 184, 0.1)',
+                                                drawBorder: false
+                                            },
+                                            ticks: {
+                                                callback: function(value) {
+                                                    return new Intl.NumberFormat('fr-FR').format(value) + ' Ar';
+                                                },
+                                                font: {
+                                                    size: 10
+                                                },
+                                                color: '#64748b'
+                                            }
+                                        },
+                                        x: {
+                                            grid: {
+                                                display: false,
+                                                drawBorder: false
+                                            },
+                                            ticks: {
+                                                font: {
+                                                    size: 10
+                                                },
+                                                color: '#64748b'
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    });
+                </script>
             </div>
 
             <!-- Top Products -->
@@ -224,24 +318,34 @@
                     <p class="text-[11px] text-slate-500 font-medium mt-0.5">Les articles les plus vendus de la journée</p>
                 </div>
                 <div class="space-y-4 flex-1 overflow-y-auto max-h-80 pr-1">
-                    <template x-for="item in catalog.slice(0, 4)">
-                        <div class="flex items-center justify-between py-1.5 group">
-                            <div class="flex items-center space-x-3 flex-1 min-w-0">
-                                <img class="w-10 h-10 rounded-xl object-cover bg-slate-100 border border-slate-100 flex-shrink-0 group-hover:scale-105 transition-all duration-200" :src="item.image" :alt="item.name">
-                                <div class="min-w-0 flex-1">
-                                    <h4 class="text-xs font-bold text-slate-900 truncate" x-text="item.name"></h4>
-                                    <span class="text-[10px] text-slate-500 font-semibold" x-text="(item.id * 15 + 20) + ' vendus'"></span>
-                                    <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden">
-                                        <div class="bg-green-600 h-full rounded-full transition-all duration-500" :style="'width: ' + (100 - item.id * 10) + '%'"></div>
-                                    </div>
+                    @forelse($topProducts as $product)
+                    <div class="flex items-center justify-between py-1.5 group">
+                        <div class="flex items-center space-x-3 flex-1 min-w-0">
+                            <img class="w-10 h-10 rounded-xl object-cover bg-slate-100 border border-slate-100 flex-shrink-0 group-hover:scale-105 transition-all duration-200" src="{{ $product->product->image_url ?? 'https://via.placeholder.com/100' }}" alt="{{ $product->product_name }}">
+                            <div class="min-w-0 flex-1">
+                                <h4 class="text-xs font-bold text-slate-900 truncate">{{ $product->product_name }}</h4>
+                                <span class="text-[10px] text-slate-500 font-semibold">{{ $product->total_quantity }} vendus</span>
+                                <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                                    <div class="bg-green-600 h-full rounded-full transition-all duration-500" style="width: {{ $product->total_quantity > 0 ? min(100, ($product->total_quantity / ($topProducts->first()->total_quantity ?? 1)) * 100) : 0 }}%"></div>
                                 </div>
                             </div>
-                            <div class="text-right pl-3">
-                                <span class="text-xs font-bold text-slate-900 block" x-text="new Intl.NumberFormat().format((item.id * 15 + 20) * item.price) + ' Ar'"></span>
-                                <span class="text-[9px] text-green-600 font-bold bg-green-50 px-1.5 py-0.5 rounded mt-0.5 inline-block" x-text="(11 - item.id * 2) + '% du CA'"></span>
-                            </div>
                         </div>
-                    </template>
+                        <div class="text-right pl-3">
+                            <span class="text-xs font-bold text-slate-900 block">{{ number_format($product->total_revenue, 0, ',', ' ') }} Ar</span>
+                            <span class="text-[9px] text-green-600 font-bold bg-green-50 px-1.5 py-0.5 rounded mt-0.5 inline-block">
+                                @if($revenue > 0)
+                                    {{ round(($product->total_revenue / $revenue) * 100) }}% du CA
+                                @else
+                                    0% du CA
+                                @endif
+                            </span>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="py-6 text-center text-slate-500">
+                        <span class="text-xs font-semibold">Aucune vente aujourd'hui</span>
+                    </div>
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -262,21 +366,74 @@
                 <div class="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-200">
                     <div class="flex items-center space-x-2">
                         <span class="w-2.5 h-2.5 rounded-full bg-green-600 block"></span>
-                        <span class="text-[10px] font-semibold text-slate-900">Alimentation <strong class="text-slate-500 ml-1">45%</strong></span>
+                        <span class="text-[10px] font-semibold text-slate-900">Alimentation <strong class="text-slate-500 ml-1">{{ $categoryData['alimentation']['percentage'] ?? 0 }}%</strong></span>
                     </div>
                     <div class="flex items-center space-x-2">
                         <span class="w-2.5 h-2.5 rounded-full bg-blue-600 block"></span>
-                        <span class="text-[10px] font-semibold text-slate-900">Boissons <strong class="text-slate-500 ml-1">25%</strong></span>
+                        <span class="text-[10px] font-semibold text-slate-900">Boissons <strong class="text-slate-500 ml-1">{{ $categoryData['boissons']['percentage'] ?? 0 }}%</strong></span>
                     </div>
                     <div class="flex items-center space-x-2">
                         <span class="w-2.5 h-2.5 rounded-full bg-amber-500 block"></span>
-                        <span class="text-[10px] font-semibold text-slate-900">Hygiène <strong class="text-slate-500 ml-1">15%</strong></span>
+                        <span class="text-[10px] font-semibold text-slate-900">Hygiène <strong class="text-slate-500 ml-1">{{ $categoryData['hygiene']['percentage'] ?? 0 }}%</strong></span>
                     </div>
                     <div class="flex items-center space-x-2">
                         <span class="w-2.5 h-2.5 rounded-full bg-purple-600 block"></span>
-                        <span class="text-[10px] font-semibold text-slate-900">Divers <strong class="text-slate-500 ml-1">15%</strong></span>
+                        <span class="text-[10px] font-semibold text-slate-900">Divers <strong class="text-slate-500 ml-1">{{ $categoryData['divers']['percentage'] ?? 0 }}%</strong></span>
                     </div>
                 </div>
+                <script>
+                    // Category chart data
+                    const categoryChartData = {
+                        labels: ['Alimentation', 'Boissons', 'Hygiène', 'Divers'],
+                        datasets: [{
+                            data: [
+                                {{ $categoryData['alimentation']['percentage'] ?? 0 }},
+                                {{ $categoryData['boissons']['percentage'] ?? 0 }},
+                                {{ $categoryData['hygiene']['percentage'] ?? 0 }},
+                                {{ $categoryData['divers']['percentage'] ?? 0 }}
+                            ],
+                            backgroundColor: [
+                                '#16a34a',
+                                '#2563eb',
+                                '#f59e0b',
+                                '#9333ea'
+                            ],
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    };
+                    
+                    // Initialize chart when DOM is ready
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const ctx = document.getElementById('categoryChart');
+                        if (ctx) {
+                            new Chart(ctx, {
+                                type: 'doughnut',
+                                data: categoryChartData,
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    cutout: '70%',
+                                    plugins: {
+                                        legend: {
+                                            display: false
+                                        },
+                                        tooltip: {
+                                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                            padding: 12,
+                                            cornerRadius: 8,
+                                            callbacks: {
+                                                label: function(context) {
+                                                    return context.label + ': ' + context.parsed + '%';
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    });
+                </script>
             </div>
 
             <!-- Cash register status -->
@@ -338,51 +495,27 @@
                     <button @click="activeTab = 'sales'" class="text-xs font-semibold text-green-600 hover:underline">Voir tout</button>
                 </div>
                 <div class="divide-y divide-slate-200 flex-1 overflow-y-auto max-h-72 pr-1">
+                    @forelse($recentTransactions as $transaction)
                     <div class="flex items-center justify-between py-3">
                         <div class="flex items-center space-x-3">
                             <div class="p-2 bg-slate-100 rounded-xl text-slate-700 flex items-center justify-center flex-shrink-0">
                                 <i data-lucide="receipt" class="w-4 h-4"></i>
                             </div>
                             <div>
-                                <span class="text-xs font-bold text-slate-900 block">Ticket #TX-9482</span>
-                                <span class="text-[10px] text-slate-500 font-semibold block">14:32 • 4 art • Ravaka M.</span>
+                                <span class="text-xs font-bold text-slate-900 block">Ticket #{{ $transaction->sale_number }}</span>
+                                <span class="text-[10px] text-slate-500 font-semibold block">{{ $transaction->sale_date->format('H:i') }} • {{ $transaction->items->count() }} art • {{ $transaction->user->name ?? 'Admin' }}</span>
                             </div>
                         </div>
                         <div class="text-right">
-                            <span class="text-xs font-bold text-slate-900 block">45 500 Ar</span>
+                            <span class="text-xs font-bold text-slate-900 block">{{ number_format($transaction->total, 0, ',', ' ') }} Ar</span>
                             <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-100 text-green-600">Payée</span>
                         </div>
                     </div>
-                    <div class="flex items-center justify-between py-3">
-                        <div class="flex items-center space-x-3">
-                            <div class="p-2 bg-slate-100 rounded-xl text-slate-700 flex items-center justify-center flex-shrink-0">
-                                <i data-lucide="receipt" class="w-4 h-4"></i>
-                            </div>
-                            <div>
-                                <span class="text-xs font-bold text-slate-900 block">Ticket #TX-9481</span>
-                                <span class="text-[10px] text-slate-500 font-semibold block">14:15 • 1 art • Ravaka M.</span>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-xs font-bold text-slate-900 block">12 000 Ar</span>
-                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-100 text-green-600">Payée</span>
-                        </div>
+                    @empty
+                    <div class="py-6 text-center text-slate-500">
+                        <span class="text-xs font-semibold">Aucune transaction aujourd'hui</span>
                     </div>
-                    <div class="flex items-center justify-between py-3">
-                        <div class="flex items-center space-x-3">
-                            <div class="p-2 bg-slate-100 rounded-xl text-slate-700 flex items-center justify-center flex-shrink-0">
-                                <i data-lucide="receipt" class="w-4 h-4"></i>
-                            </div>
-                            <div>
-                                <span class="text-xs font-bold text-slate-900 block">Ticket #TX-9480</span>
-                                <span class="text-[10px] text-slate-500 font-semibold block">13:58 • 2 art • Aissata K.</span>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-xs font-bold text-slate-900 block">8 500 Ar</span>
-                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-100 text-green-600">Payée</span>
-                        </div>
-                    </div>
+                    @endforelse
                 </div>
             </div>
         </div>
@@ -457,56 +590,71 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200">
-                        <template x-for="item in products" :key="item.id">
-                            <tr x-show="(selectedCategory === 'all' || item.category === selectedCategory) && (searchQuery === '' || item.name.toLowerCase().includes(searchQuery.toLowerCase()) || item.reference.toLowerCase().includes(searchQuery.toLowerCase()))" class="hover:bg-slate-50/50 transition-all">
+                        @forelse($products as $product)
+                            <tr class="hover:bg-slate-50/50 transition-all product-row" data-category="{{ $product->category }}" data-name="{{ strtolower($product->name) }}" data-reference="{{ strtolower($product->reference) }}">
                                 <td class="px-6 py-4 flex items-center space-x-3">
-                                    <img class="w-10 h-10 rounded-lg object-cover bg-slate-100 border border-slate-100 flex-shrink-0" :src="item.image" :alt="item.name">
+                                    <img class="w-10 h-10 rounded-lg object-cover bg-slate-100 border border-slate-100 flex-shrink-0" src="{{ $product->image_url }}" alt="{{ $product->name }}">
                                     <div>
-                                        <span class="text-xs font-bold text-slate-900 block" x-text="item.name"></span>
-                                        <span class="text-[9px] font-semibold text-slate-500 block" x-text="item.reference"></span>
+                                        <span class="text-xs font-bold text-slate-900 block">{{ $product->name }}</span>
+                                        <span class="text-[9px] font-semibold text-slate-500 block">{{ $product->reference }}</span>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider" x-text="item.category"></td>
-                                <td class="px-6 py-4 text-xs font-bold text-slate-900" x-text="new Intl.NumberFormat().format(item.buyPrice) + ' Ar'"></td>
-                                <td class="px-6 py-4 text-xs font-bold text-green-600" x-text="new Intl.NumberFormat().format(item.price) + ' Ar'"></td>
+                                <td class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ $product->category }}</td>
+                                <td class="px-6 py-4 text-xs font-bold text-slate-900">{{ number_format($product->purchase_price, 0, ',', ' ') }} Ar</td>
+                                <td class="px-6 py-4 text-xs font-bold text-green-600">{{ number_format($product->selling_price, 0, ',', ' ') }} Ar</td>
                                 <td class="px-6 py-4">
-                                    <span class="text-xs font-bold text-green-600" x-text="new Intl.NumberFormat().format(item.price - item.buyPrice) + ' Ar'"></span>
-                                    <span class="text-[9px] text-slate-500 font-medium block" x-text="item.price > 0 ? Math.round(((item.price - item.buyPrice) / item.price) * 100) + '% marge' : '0% marge'"></span>
+                                    <span class="text-xs font-bold text-green-600">{{ number_format($product->selling_price - $product->purchase_price, 0, ',', ' ') }} Ar</span>
+                                    <span class="text-[9px] text-slate-500 font-medium block">
+                                        @if($product->selling_price > 0)
+                                            {{ round((($product->selling_price - $product->purchase_price) / $product->selling_price) * 100) }}% marge
+                                        @else
+                                            0% marge
+                                        @endif
+                                    </span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex items-center space-x-2">
-                                        <span :class="item.stock <= 0 ? 'bg-red-100 text-red-600' : item.stock <= item.minStock ? 'bg-amber-100 text-amber-600' : 'bg-green-100 text-green-600'" class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                                            <span x-text="item.stock <= 0 ? 'Rupture' : item.stock <= item.minStock ? 'Alerte' : 'En Stock'"></span>:
-                                            <strong x-text="item.stock"></strong>
-                                        </span>
+                                        @if($product->stock <= 0)
+                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-600">Rupture: <strong>{{ $product->stock }}</strong></span>
+                                        @elseif($product->stock <= $product->minimum_stock)
+                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-600">Alerte: <strong>{{ $product->stock }}</strong></span>
+                                        @else
+                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-600">En Stock: <strong>{{ $product->stock }}</strong></span>
+                                        @endif
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end space-x-2">
-                                        <button @click="window.location.href = '/products/' + item.id + '/edit'" class="p-1.5 text-slate-500 hover:text-green-600 rounded-lg hover:bg-slate-100 transition-all" title="Modifier">
+                                        <a href="{{ route('products.edit', $product) }}" class="p-1.5 text-slate-500 hover:text-green-600 rounded-lg hover:bg-slate-100 transition-all" title="Modifier">
                                             <i data-lucide="edit-2" class="w-4 h-4"></i>
-                                        </button>
-                                        <button @click="if(confirm('Voulez-vous vraiment supprimer ce produit ?')) document.getElementById('deleteForm' + item.id).submit()" class="p-1.5 text-slate-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all" title="Supprimer">
-                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                        </button>
+                                        </a>
+                                        <form id="deleteForm{{ $product->id }}" action="{{ route('products.destroy', $product) }}" method="POST" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="button" onclick="if(confirm('Voulez-vous vraiment supprimer ce produit ?')) document.getElementById('deleteForm{{ $product->id }}').submit();" class="p-1.5 text-slate-500 hover:text-red-600 rounded-lg hover:bg-red-50 transition-all" title="Supprimer">
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
-                        </template>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <i data-lucide="package" class="w-12 h-12 text-slate-300 mb-2"></i>
+                                        <span class="text-xs font-semibold text-slate-500">Aucun produit trouvé</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
-                    @foreach($products as $product)
-                        <form id="deleteForm{{ $product->id }}" action="{{ route('products.destroy', $product) }}" method="POST" class="hidden">
-                            @csrf
-                            @method('DELETE')
-                        </form>
-                    @endforeach
-                </div>
             </div>
             
             <!-- Table Footer Pagination Mockup -->
             <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between">
-                <span class="text-[11px] font-medium text-slate-500">Affichage de 1 à 6 sur 6 produits</span>
+                <span class="text-[11px] font-medium text-slate-500" id="productCount">Affichage de {{ count($products) }} produit(s)</span>
                 <div class="flex gap-1">
                     <button class="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-500 cursor-not-allowed">Précédent</button>
                     <button class="px-3 py-1.5 bg-green-600 text-white rounded-lg text-[10px] font-bold">1</button>
@@ -514,6 +662,49 @@
                 </div>
             </div>
         </div>
+
+        <!-- Script pour filtrer et rechercher les produits -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const searchInput = document.querySelector('input[placeholder*="Rechercher"]');
+                const categorySelect = document.querySelector('select[x-model="selectedCategory"]');
+                const productRows = document.querySelectorAll('.product-row');
+                const productCount = document.getElementById('productCount');
+
+                function filterProducts() {
+                    const searchTerm = (searchInput?.value || '').toLowerCase();
+                    const selectedCategory = categorySelect?.value || 'all';
+                    let visibleCount = 0;
+
+                    productRows.forEach(row => {
+                        const category = row.getAttribute('data-category');
+                        const name = row.getAttribute('data-name');
+                        const reference = row.getAttribute('data-reference');
+
+                        const categoryMatch = selectedCategory === 'all' || category === selectedCategory;
+                        const searchMatch = searchTerm === '' || name.includes(searchTerm) || reference.includes(searchTerm);
+
+                        if (categoryMatch && searchMatch) {
+                            row.style.display = '';
+                            visibleCount++;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+
+                    productCount.textContent = visibleCount === 0 
+                        ? 'Aucun produit trouvé' 
+                        : `Affichage de ${visibleCount} produit(s)`;
+                }
+
+                if (searchInput) {
+                    searchInput.addEventListener('input', filterProducts);
+                }
+                if (categorySelect) {
+                    categorySelect.addEventListener('change', filterProducts);
+                }
+            });
+        </script>
 
         <!-- Add Product Slider / Modal Modal -->
         <div x-show="showAddProductModal" class="fixed inset-0 z-50 overflow-hidden flex items-center justify-center p-4 bg-slate-900/60" style="display: none;">
@@ -817,20 +1008,7 @@
                         <p class="text-[11px] text-slate-500 font-medium mt-0.5">Saisir les entrées ou corrections manuelles</p>
                     </div>
                     
-                    <form @submit.prevent="
-                        let item = catalog.find(i => i.id == $refs.adjProd.value);
-                        let qty = parseInt($refs.adjQty.value);
-                        if ($refs.adjType.value === 'remove' && item.stock < qty) {
-                            alert('Quantité insuffisante en stock !');
-                            return;
-                        }
-                        if ($refs.adjType.value === 'add') {
-                            item.stock += qty;
-                        } else {
-                            item.stock -= qty;
-                        }
-                        alert('Mouvement de stock enregistré avec succès !');
-                    " class="space-y-4">
+                    <form @submit.prevent="submitStockAdjustment($event)" class="space-y-4">
                         <div>
                             <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Produit</label>
                             <select x-ref="adjProd" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
@@ -852,11 +1030,71 @@
                                 <input x-ref="adjQty" type="number" required min="1" value="5" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
                             </div>
                         </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Notes (optionnel)</label>
+                            <input x-ref="adjNotes" type="text" placeholder="Raison ou référence" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+                        </div>
                         
                         <button type="submit" class="w-full py-3 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all duration-200">
                             Enregistrer le mouvement
                         </button>
                     </form>
+
+                    <script>
+                        function submitStockAdjustmentHandler(ctx) {
+                            return async function (e) {
+                                let item = ctx.catalog.find(i => i.id == ctx.$refs.adjProd.value);
+                                let qty = parseInt(ctx.$refs.adjQty.value);
+                                let type = ctx.$refs.adjType.value === 'add' ? 'adjustment' : 'loss';
+                                if (ctx.$refs.adjType.value === 'remove' && item.stock < qty) {
+                                    alert('Quantité insuffisante en stock !');
+                                    return;
+                                }
+
+                                try {
+                                    const res = await fetch('{{ route('admin.stock.store') }}', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                        },
+                                        body: JSON.stringify({
+                                            product_id: item.id,
+                                            type: type,
+                                            quantity: qty,
+                                            notes: ctx.$refs.adjNotes ? ctx.$refs.adjNotes.value : null
+                                        })
+                                    });
+
+                                    const data = await res.json();
+                                    if (!res.ok || !data.success) {
+                                        alert(data.message || 'Erreur lors de l\'enregistrement du mouvement');
+                                        return;
+                                    }
+
+                                    // Mettre à jour le stock côté client
+                                    item.stock = data.stock_after;
+                                    alert(data.message || 'Mouvement de stock enregistré avec succès !');
+                                } catch (err) {
+                                    console.error(err);
+                                    alert('Erreur réseau lors de l\'enregistrement.');
+                                }
+                            }
+                        }
+                        // Attach function to Alpine root after initialization
+                        document.addEventListener('alpine:initialized', function () {
+                            // find Alpine component and bind the method
+                            try {
+                                let root = document.querySelector('[x-data]');
+                                if (root && root.__x) {
+                                    let comp = root.__x.$data;
+                                    comp.submitStockAdjustment = submitStockAdjustmentHandler(comp);
+                                }
+                            } catch (e) {
+                                // noop
+                            }
+                        });
+                    </script>
                 </div>
             </div>
 
@@ -905,131 +1143,6 @@
         </div>
     </div>
 
-    <!-- ============================================ -->
-    <!-- TAB 5: CUSTOMERS DIRECTORY                   -->
-    <!-- ============================================ -->
-    <div x-show="activeTab === 'customers'" class="space-y-6" x-transition:enter="transition-all ease-out duration-300" style="display: none;">
-        <div class="bg-white rounded-[18px] p-6 border border-slate-200 shadow-sm">
-            <h3 class="text-base font-bold text-slate-900 mb-4">Liste des clients</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                            <th class="px-6 py-4">Nom Client</th>
-                            <th class="px-6 py-4">Téléphone</th>
-                            <th class="px-6 py-4">Historique d'Achat</th>
-                            <th class="px-6 py-4">Points Fidélité</th>
-                            <th class="px-6 py-4">Solde Crédit</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200 text-xs font-medium">
-                        <tr class="hover:bg-slate-50">
-                            <td class="px-6 py-4 text-slate-900 font-bold">Rado Rabe</td>
-                            <td class="px-6 py-4 text-slate-500">+261 34 11 222 33</td>
-                            <td class="px-6 py-4 text-slate-900">14 Achats (320 000 Ar total)</td>
-                            <td class="px-6 py-4">
-                                <span class="bg-purple-100 text-purple-700 font-bold px-2.5 py-1 rounded-full text-[10px] uppercase">320 pts</span>
-                            </td>
-                            <td class="px-6 py-4 text-slate-900">0 Ar</td>
-                        </tr>
-                        <tr class="hover:bg-slate-50">
-                            <td class="px-6 py-4 text-slate-900 font-bold">Sitraka Andria</td>
-                            <td class="px-6 py-4 text-slate-500">+261 32 44 555 66</td>
-                            <td class="px-6 py-4 text-slate-900">5 Achats (85 000 Ar total)</td>
-                            <td class="px-6 py-4">
-                                <span class="bg-purple-100 text-purple-700 font-bold px-2.5 py-1 rounded-full text-[10px] uppercase">85 pts</span>
-                            </td>
-                            <td class="px-6 py-4 text-amber-600 font-bold bg-amber-50">15 000 Ar <span class="text-[9px] text-slate-500 font-medium block">Crédit dû</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================================ -->
-    <!-- TAB 6: SETTINGS AND SYSTEM CONFIG            -->
-    <!-- ============================================ -->
-    <div x-show="activeTab === 'settings'" class="grid grid-cols-1 md:grid-cols-3 gap-8" x-transition:enter="transition-all ease-out duration-300" style="display: none;">
-        
-        <!-- General Store config form -->
-        <div class="md:col-span-2 bg-white rounded-[18px] p-6 border border-slate-200 shadow-sm space-y-6">
-            <div>
-                <h3 class="text-base font-bold text-slate-900">Configuration de l'Établissement</h3>
-                <p class="text-[11px] text-slate-500 mt-0.5">Paramètres d'affichage, entête et ticket de caisse</p>
-            </div>
-            
-            <form @submit.prevent="alert('Configuration enregistrée avec succès !')" class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Nom de la boutique</label>
-                        <input type="text" value="Fastcaisse Madagascar" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-green-600 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Devise du système</label>
-                        <select class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-green-600 focus:outline-none">
-                            <option value="MGA">Ariary (Ar) - Madagascar</option>
-                            <option value="EUR">Euro (€)</option>
-                            <option value="USD">Dollars ($)</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Numéro fiscal (NIF/STAT)</label>
-                        <input type="text" value="4000123456" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-green-600 focus:outline-none">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Taux de Taxe TVA (%)</label>
-                        <input type="number" value="20" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-green-600 focus:outline-none">
-                    </div>
-                </div>
-                
-                <div>
-                    <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Message de pied de ticket</label>
-                    <textarea rows="3" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-green-600 focus:outline-none">Misaotra betsaka tamin'ny tsidika! A bientot.</textarea>
-                </div>
-                
-                <button type="submit" class="px-5 py-3 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all duration-200">
-                    Enregistrer les paramètres
-                </button>
-            </form>
-        </div>
-
-        <!-- System caissier list card -->
-        <div class="bg-white rounded-[18px] p-6 border border-slate-200 shadow-sm flex flex-col justify-between">
-            <div>
-                <div class="mb-4">
-                    <h3 class="text-base font-bold text-slate-900">Utilisateurs & Caissiers</h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Gérer les comptes d'accès aux caisses</p>
-                </div>
-                
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
-                        <div class="flex items-center space-x-3">
-                            <img class="w-8 h-8 rounded-full object-cover" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" alt="Aissata">
-                            <div>
-                                <span class="text-xs font-bold text-slate-900 block">Aissata K.</span>
-                                <span class="text-[9px] text-slate-500 font-bold block uppercase">Administrateur</span>
-                            </div>
-                        </div>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-100 text-green-600">Actif</span>
-                    </div>
-                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
-                        <div class="flex items-center space-x-3">
-                            <img class="w-8 h-8 rounded-full object-cover" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop" alt="Rina">
-                            <div>
-                                <span class="text-xs font-bold text-slate-900 block">Ravaka M.</span>
-                                <span class="text-[9px] text-slate-500 font-bold block uppercase">Caissière 01</span>
-                            </div>
-                        </div>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-green-100 text-green-600">Actif</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 @endsection
 
 @push('scripts')
@@ -1046,23 +1159,23 @@
 
     // Initialize Charts after DOM and Alpine are ready
     document.addEventListener('alpine:initialized', function() {
-        // Sales Line Chart
+        // Sales Line Chart with dynamic data
         const salesCtx = document.getElementById('salesChart');
         if (salesCtx) {
             new Chart(salesCtx, {
                 type: 'line',
                 data: {
-                    labels: ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'],
+                    labels: @json($chartLabels),
                     datasets: [{
-                        label: 'Ventes (Ar)',
-                        data: [120000, 190000, 150000, 250000, 220000, 300000, 280000, 350000, 245000],
-                        borderColor: '#22C55E',
-                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        label: 'Chiffre d\'affaires (Ar)',
+                        data: @json($chartData),
+                        borderColor: '#16a34a',
+                        backgroundColor: 'rgba(22, 163, 74, 0.1)',
                         borderWidth: 3,
                         fill: true,
                         tension: 0.4,
                         pointRadius: 4,
-                        pointBackgroundColor: '#22C55E',
+                        pointBackgroundColor: '#16a34a',
                         pointBorderColor: '#fff',
                         pointBorderWidth: 2,
                         pointHoverRadius: 6
@@ -1076,8 +1189,9 @@
                             display: false
                         },
                         tooltip: {
-                            backgroundColor: '#0F172A',
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
                             padding: 12,
+                            cornerRadius: 8,
                             titleFont: {
                                 size: 11,
                                 weight: 'bold'
@@ -1096,17 +1210,17 @@
                         y: {
                             beginAtZero: true,
                             grid: {
-                                color: 'rgba(203, 213, 225, 0.3)',
+                                color: 'rgba(148, 163, 184, 0.1)',
                                 drawBorder: false
                             },
                             ticks: {
                                 callback: function(value) {
-                                    return (value / 1000) + 'k';
+                                    return new Intl.NumberFormat('fr-FR').format(value) + ' Ar';
                                 },
                                 font: {
                                     size: 10
                                 },
-                                color: '#64748B'
+                                color: '#64748b'
                             }
                         },
                         x: {
@@ -1118,7 +1232,7 @@
                                 font: {
                                     size: 10
                                 },
-                                color: '#64748B'
+                                color: '#64748b'
                             }
                         }
                     },
@@ -1130,7 +1244,7 @@
             });
         }
 
-        // Category Doughnut Chart
+        // Category Doughnut Chart with dynamic data
         const categoryCtx = document.getElementById('categoryChart');
         if (categoryCtx) {
             new Chart(categoryCtx, {
@@ -1138,35 +1252,34 @@
                 data: {
                     labels: ['Alimentation', 'Boissons', 'Hygiène', 'Divers'],
                     datasets: [{
-                        data: [45, 25, 15, 15],
+                        data: [
+                            {{ $categoryData['alimentation']['percentage'] ?? 0 }},
+                            {{ $categoryData['boissons']['percentage'] ?? 0 }},
+                            {{ $categoryData['hygiene']['percentage'] ?? 0 }},
+                            {{ $categoryData['divers']['percentage'] ?? 0 }}
+                        ],
                         backgroundColor: [
-                            '#22C55E',
-                            '#2563EB',
-                            '#F59E0B',
-                            '#9333EA'
+                            '#16a34a',
+                            '#2563eb',
+                            '#f59e0b',
+                            '#9333ea'
                         ],
                         borderWidth: 0,
-                        hoverOffset: 8
+                        hoverOffset: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '75%',
+                    cutout: '70%',
                     plugins: {
                         legend: {
                             display: false
                         },
                         tooltip: {
-                            backgroundColor: '#0F172A',
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
                             padding: 12,
-                            titleFont: {
-                                size: 11,
-                                weight: 'bold'
-                            },
-                            bodyFont: {
-                                size: 10
-                            },
+                            cornerRadius: 8,
                             callbacks: {
                                 label: function(context) {
                                     return context.label + ': ' + context.parsed + '%';

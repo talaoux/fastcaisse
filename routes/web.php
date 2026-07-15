@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
 
@@ -19,26 +21,33 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/admin/dashboard', function () {
-    $products = Product::orderBy('created_at', 'desc')->get();
+// Auth Routes
+Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    return view('admin.dashboard', compact('products'));
-})->name('admin.dashboard');
+// Protected Routes (require authentication)
+Route::middleware('auth')->group(function () {
+    // Admin Routes
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+    });
 
-Route::get('/cashier/dashboard', [\App\Http\Controllers\CashierController::class, 'index'])->name('cashier.dashboard');
+    // Cashier Routes
+    Route::middleware('role:cashier')->group(function () {
+        Route::get('/cashier/dashboard', [\App\Http\Controllers\CashierController::class, 'index'])->name('cashier.dashboard');
+    });
 
-// Routes pour le module Produits
-Route::resource('products', ProductController::class);
+    // Routes for both admin and cashier
+    Route::resource('products', ProductController::class);
 
-// Route pour la section Ventes (POS)
-Route::get('/admin/sales', [\App\Http\Controllers\Admin\SalesController::class, 'index'])->name('admin.sales');
-Route::post('/admin/sales', [\App\Http\Controllers\Admin\SalesController::class, 'store'])->name('admin.sales.store');
+    // Admin sales and stock routes
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/admin/sales', [\App\Http\Controllers\Admin\SalesController::class, 'index'])->name('admin.sales');
+        Route::post('/admin/sales', [\App\Http\Controllers\Admin\SalesController::class, 'store'])->name('admin.sales.store');
 
-// Routes pour les sections Stock et Clients
-Route::get('/admin/stock', [\App\Http\Controllers\Admin\StockController::class, 'index'])->name('admin.stock');
-Route::post('/admin/stock', [\App\Http\Controllers\Admin\StockController::class, 'store'])->name('admin.stock.store');
-Route::get('/admin/customers', [\App\Http\Controllers\Admin\CustomersController::class, 'index'])->name('admin.customers');
-
-Route::get('/login', function () {
-    return view('auth.Login');
+        Route::get('/admin/stock', [\App\Http\Controllers\Admin\StockController::class, 'index'])->name('admin.stock');
+        Route::post('/admin/stock', [\App\Http\Controllers\Admin\StockController::class, 'store'])->name('admin.stock.store');
+        Route::get('/admin/customers', [\App\Http\Controllers\Admin\CustomersController::class, 'index'])->name('admin.customers');
+    });
 });

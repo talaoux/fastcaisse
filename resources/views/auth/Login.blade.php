@@ -33,21 +33,36 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
         Bienvenue ! Connectez-vous à votre compte
     </p>
 
-    <form>
+    @if ($errors->any())
+        <div style="background: #fee; padding: 10px; margin-bottom: 15px; border-radius: 5px; color: #c33; font-size: 14px;">
+            @foreach ($errors->all() as $error)
+                <p>{{ $error }}</p>
+            @endforeach
+        </div>
+    @endif
+
+    <form method="POST" action="{{ route('login.post') }}">
+        @csrf
 
         <div class="form-group">
 
-            <label>Email ou numéro de téléphone</label>
+            <label>Email</label>
 
             <div class="input">
 
                 <i class="fa-regular fa-user"></i>
 
                 <input
-                    type="text"
-                    placeholder="Entrez votre email ou téléphone">
+                    type="email"
+                    name="email"
+                    value="{{ old('email') }}"
+                    placeholder="Entrez votre email"
+                    required>
 
             </div>
+            @error('email')
+                <span style="color: #c33; font-size: 12px;">{{ $message }}</span>
+            @enderror
 
         </div>
 
@@ -61,21 +76,20 @@ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
 
                 <input
                     type="password"
-                    placeholder="Entrez votre mot de passe">
+                    name="password"
+                    placeholder="Entrez votre mot de passe"
+                    required>
 
                 <i class="fa-regular fa-eye"></i>
 
             </div>
+            @error('password')
+                <span style="color: #c33; font-size: 12px;">{{ $message }}</span>
+            @enderror
 
         </div>
 
-        <div class="forgot">
-
-            <a href="#">Mot de passe oublié ?</a>
-
-        </div>
-
-        <button>
+        <button type="submit">
 
             <i class="fa-solid fa-lock"></i>
 

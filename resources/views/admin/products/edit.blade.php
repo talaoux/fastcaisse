@@ -1,4 +1,4 @@
-code@extends('layouts.admin')
+@extends('layouts.admin')
 
 @section('title', 'Modifier le Produit')
 @section('subtitle', 'Modifiez les informations du produit')

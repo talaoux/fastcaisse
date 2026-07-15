@@ -154,19 +154,11 @@
                 </a>
                 <a href="{{ route('admin.sales') }}" @click="activeTab = 'sales'; mobileSidebarOpen = false" :class="activeTab === 'sales' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left">
                     <i data-lucide="shopping-bag" class="w-5 h-5"></i>
-                    <span>Ventes (Caisse)</span>
+                    <span>Ventes</span>
                 </a>
                 <a href="{{ route('admin.stock') }}" @click="activeTab = 'stock'; mobileSidebarOpen = false" :class="activeTab === 'stock' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left">
                     <i data-lucide="archive" class="w-5 h-5"></i>
                     <span>Stock</span>
-                </a>
-                <a href="{{ route('admin.customers') }}" @click="activeTab = 'customers'; mobileSidebarOpen = false" :class="activeTab === 'customers' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left">
-                    <i data-lucide="users" class="w-5 h-5"></i>
-                    <span>Clients</span>
-                </a>
-                <a href="#" @click="activeTab = 'settings'; mobileSidebarOpen = false" :class="activeTab === 'settings' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left">
-                    <i data-lucide="settings" class="w-5 h-5"></i>
-                    <span>Paramètres</span>
                 </a>
             </nav>
         </div>
@@ -238,7 +230,7 @@
                 </a>
                 <a href="{{ route('admin.sales') }}" @click="activeTab = 'sales'" :class="activeTab === 'sales' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20 hover:bg-primary/95' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left hover:translate-x-1">
                     <i data-lucide="shopping-bag" class="w-5 h-5"></i>
-                    <span>Ventes (Caisse)</span>
+                    <span>Ventes</span>
                 </a>
                 <a href="{{ route('admin.stock') }}" @click="activeTab = 'stock'" :class="activeTab === 'stock' ? 'bg-primary text-white font-semibold shadow-sm shadow-primary/20 hover:bg-primary/95' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'" class="w-full flex items-center space-x-3 px-4 py-3 rounded-[12px] font-medium transition-all duration-200 text-left hover:translate-x-1">
                     <i data-lucide="archive" class="w-5 h-5"></i>
@@ -306,10 +298,13 @@
                         <span>Paramètres</span>
                     </a>
                     <div class="border-t border-slate-200 my-1"></div>
-                    <a href="#" class="flex items-center space-x-2 px-4 py-2 text-xs text-red-600 hover:bg-red-50">
-                        <i data-lucide="log-out" class="w-4 h-4 text-red-600"></i>
-                        <span>Déconnexion</span>
-                    </a>
+                    <form action="{{ route('logout') }}" method="POST" class="w-full">
+                        @csrf
+                        <button type="submit" class="w-full flex items-center space-x-2 px-4 py-2 text-xs text-red-600 hover:bg-red-50 text-left">
+                            <i data-lucide="log-out" class="w-4 h-4 text-red-600"></i>
+                            <span>Déconnexion</span>
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
