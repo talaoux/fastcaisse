@@ -18,4 +18,31 @@ class ExampleTest extends TestCase
 
         $response->assertStatus(200);
     }
+
+    public function test_a_contact_message_can_be_submitted(): void
+    {
+        $response = $this->post('/contact', [
+            'name' => 'Aïssatou',
+            'email' => 'aissatou@example.test',
+            'message' => 'Je souhaite une démonstration de FastCaisse.',
+        ]);
+
+        $response
+            ->assertRedirect('/')
+            ->assertSessionHas('success');
+    }
+
+    public function test_contact_submission_requires_valid_data(): void
+    {
+        $response = $this->from('/')
+            ->post('/contact', [
+                'name' => '',
+                'email' => 'adresse-invalide',
+                'message' => '',
+            ]);
+
+        $response
+            ->assertRedirect('/')
+            ->assertSessionHasErrors(['name', 'email', 'message']);
+    }
 }
