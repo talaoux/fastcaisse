@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\RegisteredUserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +18,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::middleware('guest')->group(function () {
+    Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
+    Route::post('/register', [RegisteredUserController::class, 'store']);
+});
+
 Route::get('/admin/dashboard', function () {
     return view('admin.dashboard');
 });
@@ -26,4 +32,4 @@ Route::get('/cashier/dashboard', function () {
 });
 Route::get('/login', function () {
     return view('auth.Login');
-});
+})->name('login');
