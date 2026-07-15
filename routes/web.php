@@ -24,3 +24,6 @@ Route::get('/admin/dashboard', function () {
 Route::get('/cashier/dashboard', function () {
     return view('cashier.dashboard');
 });
+Route::get('/login', function () {
+    return view('auth.Login');
+});
