@@ -38,3 +38,7 @@ Route::post('/admin/sales', [\App\Http\Controllers\Admin\SalesController::class,
 Route::get('/admin/stock', [\App\Http\Controllers\Admin\StockController::class, 'index'])->name('admin.stock');
 Route::post('/admin/stock', [\App\Http\Controllers\Admin\StockController::class, 'store'])->name('admin.stock.store');
 Route::get('/admin/customers', [\App\Http\Controllers\Admin\CustomersController::class, 'index'])->name('admin.customers');
+
+Route::get('/login', function () {
+    return view('auth.Login');
+});
