@@ -151,14 +151,18 @@
                 <!-- Profile -->
                 <div class="relative" x-data="{ openProfile: false }" @click.away="openProfile = false">
                     <button @click="openProfile = !openProfile" class="flex items-center space-x-2 p-1.5 hover:bg-slate-50 rounded-xl transition-all">
-                        <div class="relative">
-                            <img class="w-9 h-9 rounded-full object-cover border-2 border-white ring-2 ring-slate-100" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop" alt="Ravaka M.">
-                            <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white"></span>
-                        </div>
-                        <div class="hidden lg:block text-left">
-                            <h4 class="text-xs font-bold text-slate-900">Ravaka M.</h4>
-                            <span class="text-[10px] text-slate-500">Caissière</span>
-                        </div>
+                <div class="relative">
+                    @if(Auth::user() && Auth::user()->avatar)
+                        <img class="w-9 h-9 rounded-full object-cover border-2 border-white ring-2 ring-slate-100" src="{{ asset('storage/' . Auth::user()->avatar . '?t=' . Auth::user()->updated_at->timestamp) }}" alt="{{ Auth::user()->name }}">
+                    @else
+                        <img class="w-9 h-9 rounded-full object-cover border-2 border-white ring-2 ring-slate-100" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop" alt="{{ Auth::user()->name ?? 'Utilisateur' }}">
+                    @endif
+                    <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white"></span>
+                </div>
+                <div class="hidden lg:block text-left">
+                    <h4 class="text-xs font-bold text-slate-900">{{ Auth::user()->name ?? 'Utilisateur' }}</h4>
+                    <span class="text-[10px] text-slate-500">{{ Auth::user()->role === 'admin' ? 'Administrateur' : 'Caissier' }}</span>
+                </div>
                         <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500 transition-transform duration-200 hidden lg:block" :class="openProfile ? 'rotate-180' : ''"></i>
                     </button>
 
@@ -172,6 +176,14 @@
                          x-transition:leave-end="transform opacity-0 scale-95"
                          class="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-[18px] shadow-lg py-2 z-50"
                          style="display: none;">
+                        <button @click="document.getElementById('avatarInputCashier').click()" class="w-full flex items-center space-x-2 px-4 py-2 text-xs text-slate-900 hover:bg-slate-50 text-left">
+                            <i data-lucide="camera" class="w-4 h-4 text-slate-500"></i>
+                            <span>Changer la photo</span>
+                        </button>
+                        <form id="avatarFormCashier" action="{{ route('profile.avatar') }}" method="POST" enctype="multipart/form-data" class="w-full">
+                            @csrf
+                            <input type="file" name="avatar" accept="image/png, image/jpeg, image/webp" class="hidden" id="avatarInputCashier" onchange="uploadAvatarCashier(this)">
+                        </form>
                         <a href="#" class="flex items-center space-x-2 px-4 py-2 text-xs text-slate-900 hover:bg-slate-50">
                             <i data-lucide="user" class="w-4 h-4 text-slate-500"></i>
                             <span>Mon Profil</span>
@@ -195,6 +207,21 @@
 
         <!-- Main Workspace Area -->
         <main class="flex-1 p-6 lg:p-8">
+            <!-- Success/Error Messages -->
+            @if(session('success'))
+                <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl flex items-center gap-2 mb-6">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    <span class="text-sm font-medium">{{ session('success') }}</span>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2 mb-6">
+                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                    <span class="text-sm font-medium">{{ session('error') }}</span>
+                </div>
+            @endif
+
             <!-- Page content loaded dynamically -->
             @yield('content')
         </main>
@@ -240,6 +267,32 @@
         document.addEventListener('alpine:initialized', function() {
             lucide.createIcons();
         });
+        
+        // Avatar upload handler with AJAX for cashier
+        function uploadAvatarCashier(input) {
+            if (input.files && input.files[0]) {
+                const form = document.getElementById('avatarFormCashier');
+                const formData = new FormData(form);
+                
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Reload page to show new avatar
+                        setTimeout(() => location.reload(), 300);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Erreur lors de l\'upload de l\'image');
+                });
+            }
+        }
     </script>
     @stack('scripts')
 </body>

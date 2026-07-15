@@ -178,22 +178,26 @@
                 </div>
             </div>
 
-            <!-- Profile Widget -->
-            <div class="flex items-center justify-between p-2 bg-slate-50 rounded-[18px] border border-slate-200">
-                <div class="flex items-center space-x-3">
-                    <div class="relative">
-                        <img class="w-10 h-10 rounded-full object-cover border-2 border-white ring-2 ring-slate-100" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" alt="Aissata K.">
-                        <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white"></span>
+                    <!-- Profile Widget -->
+                    <div class="flex items-center justify-between p-2 bg-slate-50 rounded-[18px] border border-slate-200">
+                        <div class="flex items-center space-x-3">
+                            <div class="relative">
+                                @if(Auth::user() && Auth::user()->avatar)
+                                    <img class="w-10 h-10 rounded-full object-cover border-2 border-white ring-2 ring-slate-100" src="{{ asset('storage/' . Auth::user()->avatar . '?t=' . Auth::user()->updated_at->timestamp) }}" alt="{{ Auth::user()->name }}">
+                                @else
+                                    <img class="w-10 h-10 rounded-full object-cover border-2 border-white ring-2 ring-slate-100" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" alt="{{ Auth::user()->name ?? 'Utilisateur' }}">
+                                @endif
+                                <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white"></span>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-900">{{ Auth::user()->name ?? 'Utilisateur' }}</h4>
+                                <span class="text-[10px] text-slate-500">{{ Auth::user()->role === 'admin' ? 'Administrateur' : 'Caissier' }}</span>
+                            </div>
+                        </div>
+                        <button class="p-1 text-slate-500 hover:text-slate-900 rounded-lg">
+                            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                        </button>
                     </div>
-                    <div>
-                        <h4 class="text-xs font-bold text-slate-900">Aissata K.</h4>
-                        <span class="text-[10px] text-slate-500">Administrateur</span>
-                    </div>
-                </div>
-                <button class="p-1 text-slate-500 hover:text-slate-900 rounded-lg">
-                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
-                </button>
-            </div>
         </div>
     </div>
 
@@ -268,12 +272,16 @@
                      class="flex items-center justify-between p-2.5 hover:bg-slate-50 rounded-[18px] border border-slate-200 cursor-pointer transition-all duration-200 select-none">
                     <div class="flex items-center space-x-3">
                         <div class="relative">
-                            <img class="w-10 h-10 rounded-full object-cover border-2 border-white ring-2 ring-slate-100" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" alt="Aissata K.">
+                            @if(Auth::user() && Auth::user()->avatar)
+                                <img class="w-10 h-10 rounded-full object-cover border-2 border-white ring-2 ring-slate-100" src="{{ asset('storage/' . Auth::user()->avatar . '?t=' . Auth::user()->updated_at->timestamp) }}" alt="{{ Auth::user()->name }}">
+                            @else
+                                <img class="w-10 h-10 rounded-full object-cover border-2 border-white ring-2 ring-slate-100" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" alt="{{ Auth::user()->name ?? 'Utilisateur' }}">
+                            @endif
                             <span class="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white"></span>
                         </div>
                         <div>
-                            <h4 class="text-xs font-bold text-slate-900">Aissata K.</h4>
-                            <span class="text-[10px] text-slate-500">Administrateur</span>
+                            <h4 class="text-xs font-bold text-slate-900">{{ Auth::user()->name ?? 'Utilisateur' }}</h4>
+                            <span class="text-[10px] text-slate-500">{{ Auth::user()->role === 'admin' ? 'Administrateur' : 'Caissier' }}</span>
                         </div>
                     </div>
                     <i data-lucide="chevron-down" class="w-4 h-4 text-slate-500 transition-transform duration-200" :class="openProfile ? 'rotate-180' : ''"></i>
@@ -289,6 +297,14 @@
                      x-transition:leave-end="transform opacity-0 scale-95"
                      class="absolute bottom-full left-0 right-0 mb-2 bg-white border border-slate-200 rounded-[18px] shadow-lg py-2 z-50 overflow-hidden"
                      style="display: none;">
+                    <button @click="document.getElementById('avatarInputAdmin').click()" class="w-full flex items-center space-x-2 px-4 py-2 text-xs text-slate-900 hover:bg-slate-50 text-left">
+                        <i data-lucide="camera" class="w-4 h-4 text-slate-500"></i>
+                        <span>Changer la photo</span>
+                    </button>
+                    <form id="avatarFormAdmin" action="{{ route('profile.avatar') }}" method="POST" enctype="multipart/form-data" class="w-full">
+                        @csrf
+                        <input type="file" name="avatar" accept="image/png, image/jpeg, image/webp" class="hidden" id="avatarInputAdmin" onchange="uploadAvatar(this)">
+                    </form>
                     <a href="#" class="flex items-center space-x-2 px-4 py-2 text-xs text-slate-900 hover:bg-slate-50">
                         <i data-lucide="user" class="w-4 h-4 text-slate-500"></i>
                         <span>Mon Profil</span>
@@ -419,10 +435,14 @@
 
                 <!-- Admin Profile Bubble -->
                 <div class="flex items-center space-x-3 pl-2 border-l border-slate-200">
-                    <img class="w-9 h-9 rounded-full object-cover border-2 border-slate-200" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" alt="Aissata K.">
+                    @if(Auth::user() && Auth::user()->avatar)
+                        <img class="w-9 h-9 rounded-full object-cover border-2 border-slate-200" src="{{ asset('storage/' . Auth::user()->avatar . '?t=' . Auth::user()->updated_at->timestamp) }}" alt="{{ Auth::user()->name }}">
+                    @else
+                        <img class="w-9 h-9 rounded-full object-cover border-2 border-slate-200" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=256&auto=format&fit=crop" alt="{{ Auth::user()->name ?? 'Utilisateur' }}">
+                    @endif
                     <div class="hidden md:block">
-                        <span class="text-xs font-bold text-slate-900 block leading-none">Aissata K.</span>
-                        <span class="text-[9px] text-slate-500 block mt-0.5 font-medium">Administrateur</span>
+                        <span class="text-xs font-bold text-slate-900 block leading-none">{{ Auth::user()->name ?? 'Utilisateur' }}</span>
+                        <span class="text-[9px] text-slate-500 block mt-0.5 font-medium">{{ Auth::user()->role === 'admin' ? 'Administrateur' : 'Caissier' }}</span>
                     </div>
                 </div>
 
@@ -436,6 +456,21 @@
                 <h1 class="text-2xl font-bold tracking-tight text-slate-900">@yield('title', 'Tableau de bord')</h1>
                 <p class="text-xs font-medium text-slate-500 mt-1">@yield('subtitle', 'Bienvenue Admin, voici un aperçu de votre activité.')</p>
             </div>
+
+            <!-- Success/Error Messages -->
+            @if(session('success'))
+                <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl flex items-center gap-2">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    <span class="text-sm font-medium">{{ session('success') }}</span>
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2">
+                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                    <span class="text-sm font-medium">{{ session('error') }}</span>
+                </div>
+            @endif
 
             <!-- Page content loaded dynamically -->
             @yield('content')
@@ -457,6 +492,32 @@
         document.addEventListener("DOMContentLoaded", function() {
             lucide.createIcons();
         });
+        
+        // Avatar upload handler with AJAX
+        function uploadAvatar(input) {
+            if (input.files && input.files[0]) {
+                const form = document.getElementById('avatarFormAdmin');
+                const formData = new FormData(form);
+                
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Reload page to show new avatar
+                        setTimeout(() => location.reload(), 300);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Erreur lors de l\'upload de l\'image');
+                });
+            }
+        }
     </script>
     @stack('scripts')
 </body>
