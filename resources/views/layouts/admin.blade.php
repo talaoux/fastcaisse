@@ -166,17 +166,30 @@
         <!-- Mobile Bottom Section -->
         <div class="mt-auto space-y-4">
             <!-- Caisse ouverte Card -->
+            @if(\Cache::get('cashier_session_active') && \Cache::get('cashier_login_time'))
             <div class="p-4 bg-green-50 rounded-[18px] border border-green-100 flex items-center justify-between">
                 <div>
                     <span class="text-xs font-semibold text-green-600 uppercase tracking-wider block">Caisse ouverte</span>
                     <span class="text-sm font-bold text-slate-900">Caisse 01</span>
-                    <span class="text-xs text-slate-500 block">Ouverte à 08:00</span>
+                    <span class="text-xs text-slate-500 block">Ouverte à {{ \Cache::get('cashier_login_time')->format('H:i') }}</span>
                 </div>
                 <div class="relative flex h-3 w-3">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
                 </div>
             </div>
+            @else
+            <div class="p-4 bg-slate-50 rounded-[18px] border border-slate-200 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Caisse fermée</span>
+                    <span class="text-sm font-bold text-slate-900">Caisse 01</span>
+                    <span class="text-xs text-slate-500 block">Aucune session active</span>
+                </div>
+                <div class="relative flex h-3 w-3">
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-slate-400"></span>
+                </div>
+            </div>
+            @endif
 
                     <!-- Profile Widget -->
                     <div class="flex items-center justify-between p-2 bg-slate-50 rounded-[18px] border border-slate-200">
@@ -254,17 +267,30 @@
         <!-- Desktop Sidebar Bottom Footer / Profile -->
         <div class="flex flex-col space-y-4 pt-4 border-t border-slate-200 mt-4">
             <!-- Caisse ouverte Card -->
+            @if(\Cache::get('cashier_session_active') && \Cache::get('cashier_login_time'))
             <div class="p-4 bg-green-50 rounded-[18px] border border-green-100 flex items-center justify-between shadow-sm">
                 <div>
                     <span class="text-[10px] font-bold text-green-600 uppercase tracking-wider block">Caisse ouverte</span>
                     <span class="text-sm font-bold text-slate-900">Caisse 01</span>
-                    <span class="text-xs text-slate-500 block">Ouverte à 08:00</span>
+                    <span class="text-xs text-slate-500 block">Ouverte à {{ \Cache::get('cashier_login_time')->format('H:i') }}</span>
                 </div>
                 <div class="relative flex h-2.5 w-2.5">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
                 </div>
             </div>
+            @else
+            <div class="p-4 bg-slate-50 rounded-[18px] border border-slate-200 flex items-center justify-between shadow-sm">
+                <div>
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Caisse fermée</span>
+                    <span class="text-sm font-bold text-slate-900">Caisse 01</span>
+                    <span class="text-xs text-slate-500 block">Aucune session active</span>
+                </div>
+                <div class="relative flex h-2.5 w-2.5">
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-slate-400"></span>
+                </div>
+            </div>
+            @endif
 
             <!-- Profile Card -->
             <div class="relative" x-data="{ openProfile: false }" @click.away="openProfile = false">

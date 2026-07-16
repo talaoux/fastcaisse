@@ -22,7 +22,7 @@
     function cashierData() {
         return {
             catalog: @json($productsForJs, JSON_UNESCAPED_SLASHES),
-            
+
             cart: [],
             selectedCategory: 'all',
             searchQuery: '',
@@ -30,6 +30,11 @@
             paymentMethod: 'especes',
             amountReceived: 0,
             showCheckoutSuccess: false,
+
+            init() {
+                // Initialize with especes payment method
+                this.paymentMethod = 'especes';
+            },
             
             get filteredProducts() {
                 return this.catalog.filter(item => {
@@ -50,31 +55,44 @@
                 if (existing) {
                     existing.qty++;
                 } else {
-                    this.cart.push({ 
-                        id: item.id, 
-                        name: item.name, 
-                        price: item.price, 
-                        qty: 1, 
+                    this.cart.push({
+                        id: item.id,
+                        name: item.name,
+                        price: item.price,
+                        qty: 1,
                         image: item.image,
-                        reference: item.reference 
+                        reference: item.reference
                     });
+                }
+                // Auto-fill amount received for cash payments
+                if (this.paymentMethod === 'especes') {
+                    this.amountReceived = this.total;
                 }
             },
             
             removeFromCart(id) {
                 this.cart = this.cart.filter(i => i.id !== id);
+                if (this.paymentMethod === 'especes') {
+                    this.amountReceived = this.total;
+                }
             },
-            
+
             decreaseQty(item) {
                 if (item.qty > 1) {
                     item.qty--;
                 } else {
                     this.removeFromCart(item.id);
                 }
+                if (this.paymentMethod === 'especes') {
+                    this.amountReceived = this.total;
+                }
             },
-            
+
             increaseQty(item) {
                 item.qty++;
+                if (this.paymentMethod === 'especes') {
+                    this.amountReceived = this.total;
+                }
             },
             
             get subtotal() {
@@ -92,6 +110,13 @@
             get change() {
                 return Math.max(0, this.amountReceived - this.total);
             },
+
+            // Watch payment method to auto-fill amount for cash
+            updatePaymentMethod() {
+                if (this.paymentMethod === 'especes') {
+                    this.amountReceived = this.total;
+                }
+            },
             
             clearCart() {
                 this.cart = [];
@@ -99,10 +124,60 @@
                 this.amountReceived = 0;
             },
             
-            checkout() {
-                if (this.cart.length > 0 && this.amountReceived >= this.total) {
-                    this.showCheckoutSuccess = true;
-                } else if (this.amountReceived < this.total) {
+            async checkout() {
+                if (this.cart.length === 0) {
+                    alert('Panier vide !');
+                    return;
+                }
+
+                // Auto-fill amount for cash payments if not set
+                if (this.paymentMethod === 'especes' && this.amountReceived < this.total) {
+                    this.amountReceived = this.total;
+                }
+
+                if (this.amountReceived >= this.total) {
+                    try {
+                        // Prepare sale data
+                        const saleData = {
+                            items: this.cart.map(item => ({
+                                product_id: item.id,
+                                quantity: item.qty
+                            })),
+                            subtotal: this.subtotal,
+                            discount: this.discount,
+                            total: this.total,
+                            payment_method: this.paymentMethod,
+                            amount_paid: this.amountReceived
+                        };
+
+                        console.log('Sending sale data:', saleData);
+
+                        // Send to server
+                        const response = await fetch('/cashier/sales', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify(saleData)
+                        });
+
+                        console.log('Response status:', response.status);
+
+                        const result = await response.json();
+
+                        console.log('Response result:', result);
+
+                        if (result.success) {
+                            this.showCheckoutSuccess = true;
+                        } else {
+                            alert('Erreur: ' + (result.message || 'Erreur lors de l\'enregistrement de la vente'));
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('Erreur: ' + error.message);
+                    }
+                } else {
                     alert('Montant insuffisant !');
                 }
             },
@@ -406,28 +481,28 @@
                     <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Mode de paiement</span>
                     <div class="grid grid-cols-2 gap-2">
                         <label class="cursor-pointer">
-                            <input type="radio" x-model="paymentMethod" value="especes" class="hidden peer">
+                            <input type="radio" x-model="paymentMethod" @change="updatePaymentMethod()" value="especes" class="hidden peer">
                             <div class="p-2.5 border-2 border-slate-200 rounded-xl peer-checked:border-blue-600 peer-checked:bg-blue-50 transition-all text-center">
                                 <i data-lucide="banknote" class="w-4 h-4 mx-auto mb-1 text-slate-500 peer-checked:text-blue-600"></i>
                                 <span class="text-[10px] font-bold text-slate-900 block">Espèces</span>
                             </div>
                         </label>
                         <label class="cursor-pointer">
-                            <input type="radio" x-model="paymentMethod" value="mobile" class="hidden peer">
+                            <input type="radio" x-model="paymentMethod" @change="updatePaymentMethod()" value="mobile" class="hidden peer">
                             <div class="p-2.5 border-2 border-slate-200 rounded-xl peer-checked:border-blue-600 peer-checked:bg-blue-50 transition-all text-center">
                                 <i data-lucide="smartphone" class="w-4 h-4 mx-auto mb-1 text-slate-500 peer-checked:text-blue-600"></i>
                                 <span class="text-[10px] font-bold text-slate-900 block">Mobile Money</span>
                             </div>
                         </label>
                         <label class="cursor-pointer">
-                            <input type="radio" x-model="paymentMethod" value="carte" class="hidden peer">
+                            <input type="radio" x-model="paymentMethod" @change="updatePaymentMethod()" value="carte" class="hidden peer">
                             <div class="p-2.5 border-2 border-slate-200 rounded-xl peer-checked:border-blue-600 peer-checked:bg-blue-50 transition-all text-center">
                                 <i data-lucide="credit-card" class="w-4 h-4 mx-auto mb-1 text-slate-500 peer-checked:text-blue-600"></i>
                                 <span class="text-[10px] font-bold text-slate-900 block">Carte bancaire</span>
                             </div>
                         </label>
                         <label class="cursor-pointer">
-                            <input type="radio" x-model="paymentMethod" value="bon" class="hidden peer">
+                            <input type="radio" x-model="paymentMethod" @change="updatePaymentMethod()" value="bon" class="hidden peer">
                             <div class="p-2.5 border-2 border-slate-200 rounded-xl peer-checked:border-blue-600 peer-checked:bg-blue-50 transition-all text-center">
                                 <i data-lucide="ticket" class="w-4 h-4 mx-auto mb-1 text-slate-500 peer-checked:text-blue-600"></i>
                                 <span class="text-[10px] font-bold text-slate-900 block">Bon d'achat</span>

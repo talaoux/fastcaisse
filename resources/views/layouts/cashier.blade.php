@@ -127,24 +127,26 @@
             <!-- Header Right Section -->
             <div class="flex items-center space-x-4">
                 
+                <!-- Caisse ouverte -->
+                @if(Auth::user() && Auth::user()->role === 'cashier')
+                <div class="flex items-center space-x-2 pl-3 border-l border-slate-200">
+                    <div class="p-2 bg-green-100 rounded-xl text-green-600">
+                        <i data-lucide="store" class="w-4 h-4"></i>
+                    </div>
+                    <div class="text-left">
+                        <span class="text-[10px] font-bold text-green-600 uppercase tracking-wider block">Caisse ouverte</span>
+                        <span class="text-sm font-bold text-slate-900">Caisse 01</span>
+                        <span class="text-xs text-slate-500 block">Ouverte à <span id="cashierOpenTime">{{ session('cashier_login_time') ? session('cashier_login_time')->format('H:i') : '--:--' }}</span></span>
+                    </div>
+                </div>
+                @endif
+
                 <!-- Time & Date -->
-                <div class="hidden lg:flex items-center space-x-2 pl-3 border-l border-slate-200">
+                <div class="flex items-center space-x-2 pl-3 border-l border-slate-200">
                     <i data-lucide="clock" class="w-4 h-4 text-slate-500"></i>
                     <div class="text-right">
                         <div class="text-xs font-bold text-slate-900" id="currentTime">14:32</div>
                         <div class="text-[10px] text-slate-500" id="currentDate">08/07/2026</div>
-                    </div>
-                </div>
-
-                <!-- Caisse ouverte Indicator -->
-                <div class="hidden md:flex items-center space-x-2 px-3 py-1.5 bg-green-50 rounded-xl border border-green-100">
-                    <div class="relative flex h-2.5 w-2.5">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-[10px] font-bold text-green-600 uppercase tracking-wider block">Caisse ouverte</span>
-                        <span class="text-xs font-bold text-slate-900">Caisse 01</span>
                     </div>
                 </div>
 
@@ -250,12 +252,16 @@
                 
                 const timeElement = document.getElementById('currentTime');
                 const dateElement = document.getElementById('currentDate');
+                const cashierOpenTimeElement = document.getElementById('cashierOpenTime');
                 
                 if (timeElement) {
                     timeElement.textContent = now.toLocaleTimeString('fr-FR', timeOptions);
                 }
                 if (dateElement) {
                     dateElement.textContent = now.toLocaleDateString('fr-FR', dateOptions);
+                }
+                if (cashierOpenTimeElement) {
+                    cashierOpenTimeElement.textContent = now.toLocaleTimeString('fr-FR', timeOptions);
                 }
             }
             

@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 
 /*
@@ -21,6 +22,9 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Contact Route
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
 // Auth Routes
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -52,6 +56,9 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:cashier')->group(function () {
         Route::get('/cashier/dashboard', [\App\Http\Controllers\CashierController::class, 'index'])->name('cashier.dashboard');
     });
+
+    // Sales route - available to both admin and cashier
+    Route::post('/cashier/sales', [\App\Http\Controllers\CashierController::class, 'store'])->name('cashier.sales.store');
 
     // Routes for both admin and cashier
     Route::resource('products', ProductController::class);

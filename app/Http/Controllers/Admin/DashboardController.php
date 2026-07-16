@@ -21,10 +21,10 @@ class DashboardController extends Controller
 
         // Get today's sales
         $todaySales = Sale::completed()->today()->get();
-        
+
         // Calculate metrics
         $metrics = $this->calculateMetrics($todaySales);
-        
+
         // Get recent transactions
         $recentTransactions = Sale::completed()
             ->orderBy('sale_date', 'desc')
@@ -40,13 +40,23 @@ class DashboardController extends Controller
         // Get category breakdown
         $categoryBreakdown = $this->getCategoryBreakdown();
 
+        // Get cashier login time from cache (shared across sessions)
+        // Only show if cashier session is actually active
+        $cashierSessionActive = \Cache::get('cashier_session_active', false);
+        $cashierLoginTime = null;
+        
+        if ($cashierSessionActive) {
+            $cashierLoginTime = \Cache::get('cashier_login_time');
+        }
+
         return view('admin.dashboard', compact(
             'products',
             'metrics',
             'recentTransactions',
             'topProducts',
             'salesChartData',
-            'categoryBreakdown'
+            'categoryBreakdown',
+            'cashierLoginTime'
         ));
     }
 
@@ -98,7 +108,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get sales chart data for the last 7 days.
+     * Get sales chart data for today (hourly real-time data).
      *
      * @return array
      */
@@ -106,17 +116,27 @@ class DashboardController extends Controller
     {
         $data = [];
         $labels = [];
-        
-        for ($i = 6; $i >= 0; $i--) {
-            $date = now()->subDays($i);
-            $labels[] = $date->format('D');
-            
-            $dailySales = Sale::completed()
-                ->whereDate('sale_date', $date)
+
+        // Get hourly data for today (from 0:00 AM to current hour)
+        $currentHour = now()->hour;
+        $startHour = 0; // Start from midnight
+
+        for ($hour = $startHour; $hour <= $currentHour; $hour++) {
+            $labels[] = $hour . 'h';
+
+            $hourStart = now()->setHour($hour)->setMinute(0)->setSecond(0);
+            $hourEnd = now()->setHour($hour + 1)->setMinute(0)->setSecond(0);
+
+            $hourlySales = Sale::completed()
+                ->whereDate('sale_date', now())
+                ->where('sale_date', '>=', $hourStart)
+                ->where('sale_date', '<', $hourEnd)
                 ->sum('total');
-            
-            $data[] = $dailySales;
+
+            $data[] = (float) $hourlySales;
         }
+
+        \Log::info('Sales chart data', ['labels' => $labels, 'data' => $data, 'current_hour' => $currentHour]);
 
         return [
             'labels' => $labels,

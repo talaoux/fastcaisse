@@ -49,24 +49,11 @@
 <script>
     function dashboardData() {
         return {
-            // Product Catalogue Data
-    catalog: [
-        { id: 1, name: 'Pain de mie tranché', price: 2000, buyPrice: 1500, category: 'alimentation', stock: 15, minStock: 20, image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=100&auto=format&fit=crop' },
-        { id: 2, name: 'Lait entier 1L', price: 1200, buyPrice: 900, category: 'boissons', stock: 120, minStock: 30, image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?q=80&w=100&auto=format&fit=crop' },
-        { id: 3, name: 'Sucre blanc 1kg', price: 850, buyPrice: 650, category: 'alimentation', stock: 0, minStock: 15, image: 'https://images.unsplash.com/photo-1581441363689-1f3c3c414635?q=80&w=100&auto=format&fit=crop' },
-        { id: 4, name: 'Eau minérale 1.5L', price: 500, buyPrice: 350, category: 'boissons', stock: 64, minStock: 50, image: 'https://images.unsplash.com/photo-1608885898957-a599fb15e841?q=80&w=100&auto=format&fit=crop' },
-        { id: 5, name: 'Savon liquide 500ml', price: 3500, buyPrice: 2800, category: 'hygiene', stock: 45, minStock: 10, image: 'https://images.unsplash.com/photo-1601049676099-e7ed07d825b0?q=80&w=100&auto=format&fit=crop' },
-        { id: 6, name: 'Biscuits au chocolat', price: 1500, buyPrice: 1100, category: 'alimentation', stock: 35, minStock: 12, image: 'https://images.unsplash.com/photo-1558961309-dbdf71799f54?q=80&w=100&auto=format&fit=crop' }
-    ],
+            // Product Catalogue Data (from database)
     products: @json($productsForJs, JSON_UNESCAPED_SLASHES),
 
-    // POS Cart State
-    cart: [
-        { id: 1, name: 'Pain de mie tranché', price: 2000, qty: 2, image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=100&auto=format&fit=crop' },
-        { id: 2, name: 'Lait entier 1L', price: 1200, qty: 1, image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?q=80&w=100&auto=format&fit=crop' },
-        { id: 3, name: 'Sucre blanc 1kg', price: 850, qty: 1, image: 'https://images.unsplash.com/photo-1581441363689-1f3c3c414635?q=80&w=100&auto=format&fit=crop' },
-        { id: 4, name: 'Eau minérale 1.5L', price: 500, qty: 1, image: 'https://images.unsplash.com/photo-1608885898957-a599fb15e841?q=80&w=100&auto=format&fit=crop' }
-    ],
+    // POS Cart State (empty by default)
+    cart: [],
 
     // Search and Filters
     selectedCategory: 'all',
@@ -74,6 +61,17 @@
     discount: 0,
     showCheckoutSuccess: false,
     showAddProductModal: false,
+    
+    // Computed property for filtered products
+    get filteredProducts() {
+        return this.products.filter(item => {
+            const matchesCategory = this.selectedCategory === 'all' || item.category === this.selectedCategory;
+            const matchesSearch = this.searchQuery === '' || 
+                item.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                item.reference.toLowerCase().includes(this.searchQuery.toLowerCase());
+            return matchesCategory && matchesSearch;
+        });
+    },
     
     // POS Cart Functions
     addToCart(item) {
@@ -212,12 +210,7 @@
                 <div class="flex items-center justify-between mb-6">
                     <div>
                         <h3 class="text-base font-bold text-slate-900">Évolution des ventes</h3>
-                        <p class="text-[11px] text-slate-500 font-medium mt-0.5">Suivi des encaissements en temps réel</p>
-                    </div>
-                    <div class="flex bg-slate-100 p-1 rounded-lg text-[10px] font-bold text-slate-500">
-                        <button class="px-2.5 py-1.5 bg-white text-slate-900 rounded-md shadow-sm">Aujourd'hui</button>
-                        <button class="px-2.5 py-1.5 hover:text-slate-900 transition-all">Hier</button>
-                        <button class="px-2.5 py-1.5 hover:text-slate-900 transition-all">Semaine</button>
+                        <p class="text-[11px] text-slate-500 font-medium mt-0.5">Suivi des encaissements par heure aujourd'hui</p>
                     </div>
                 </div>
                 <div class="relative h-80 w-full">
@@ -241,6 +234,9 @@
                             pointHoverRadius: 6
                         }]
                     };
+
+                    console.log('Chart labels:', @json($chartLabels));
+                    console.log('Chart data:', @json($chartData));
                     
                     // Initialize chart when DOM is ready
                     document.addEventListener('DOMContentLoaded', function() {
@@ -443,18 +439,18 @@
                         <h3 class="text-base font-bold text-slate-900">État de caisse</h3>
                         <p class="text-[11px] text-slate-500 font-medium mt-0.5">Suivi des flux financiers de la caisse active</p>
                     </div>
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-100 text-green-600 uppercase tracking-wider">
-                        <span class="h-1.5 w-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse"></span> Ouverte
-                    </span>
+                    <div class="flex items-center space-x-2">
+                        <div class="p-2 bg-green-100 rounded-xl text-green-600">
+                            <i data-lucide="store" class="w-4 h-4"></i>
+                        </div>
+                        <div class="text-left">
+                            <span class="text-[10px] font-bold text-green-600 uppercase tracking-wider block">Caisse ouverte</span>
+                            <span class="text-sm font-bold text-slate-900">Caisse 01</span>
+                            <span class="text-xs text-slate-500 block">Ouverte à <span id="cashierOpenTimeAdmin">@if($cashierLoginTime) {{ $cashierLoginTime->format('H:i') }} @else --:-- @endif</span></span>
+                        </div>
+                    </div>
                 </div>
                 <div class="space-y-4 flex-1 flex flex-col justify-center">
-                    <div class="flex items-center justify-between pb-3 border-b border-slate-200">
-                        <div class="flex items-center space-x-2">
-                            <i data-lucide="monitor" class="w-4 h-4 text-green-600"></i>
-                            <span class="text-xs font-bold text-slate-900">Caisse principale (Caisse 01)</span>
-                        </div>
-                        <span class="text-[10px] text-slate-500 font-bold">Admin: Aissata K.</span>
-                    </div>
                     <div class="space-y-3 pt-2">
                         <div class="flex justify-between items-center text-xs font-medium">
                             <span class="text-slate-500">Solde ouverture</span>
@@ -716,46 +712,35 @@
                     </button>
                 </div>
                 
-                <form @submit.prevent="
-                    catalog.push({
-                        id: catalog.length + 1,
-                        name: $refs.prodName.value,
-                        price: parseFloat($refs.prodPrice.value),
-                        buyPrice: parseFloat($refs.prodBuy.value),
-                        category: $refs.prodCat.value,
-                        stock: parseInt($refs.prodStock.value),
-                        minStock: 10,
-                        image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=100&auto=format&fit=crop'
-                    });
-                    showAddProductModal = false;
-                    alert('Produit enregistré avec succès !');
-                " class="space-y-4">
+                <form action="{{ route('products.store') }}" method="POST" class="space-y-4">
+                    @csrf
                     <div>
                         <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Désignation du produit</label>
-                        <input x-ref="prodName" type="text" required placeholder="Ex: Eau Vive 1.5L, Riz rouge 5kg..." class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+                        <input name="name" type="text" required placeholder="Ex: Eau Vive 1.5L, Riz rouge 5kg..." class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Catégorie</label>
-                            <select x-ref="prodCat" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+                            <select name="category" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
                                 <option value="alimentation">Alimentation</option>
                                 <option value="boissons">Boissons</option>
                                 <option value="hygiene">Hygiène</option>
+                                <option value="divers">Divers</option>
                             </select>
                         </div>
                         <div>
                             <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Quantité Initiale</label>
-                            <input x-ref="prodStock" type="number" required min="0" value="10" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+                            <input name="stock" type="number" required min="0" value="10" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Prix d'Achat (Ar)</label>
-                            <input x-ref="prodBuy" type="number" required placeholder="Ex: 1000" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+                            <input name="purchase_price" type="number" required placeholder="Ex: 1000" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
                         </div>
                         <div>
                             <label class="text-[10px] font-bold text-slate-500 uppercase block mb-1">Prix de Vente (Ar)</label>
-                            <input x-ref="prodPrice" type="number" required placeholder="Ex: 1500" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+                            <input name="selling_price" type="number" required placeholder="Ex: 1500" class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
                         </div>
                     </div>
                     
@@ -793,9 +778,8 @@
 
             <!-- Products Catalog Cards Grid -->
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                <template x-for="item in catalog" :key="item.id">
-                    <div x-show="(selectedCategory === 'all' || item.category === selectedCategory) && (searchQuery === '' || item.name.toLowerCase().includes(searchQuery.toLowerCase()))" 
-                         @click="addToCart(item)"
+                <template x-for="item in filteredProducts" :key="item.id">
+                    <div @click="addToCart(item)"
                          :class="item.stock <= 0 ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02] hover:shadow-md border-slate-200'" 
                          class="bg-white rounded-[18px] p-4 border shadow-sm transition-all duration-200 flex flex-col justify-between relative group overflow-hidden select-none">
                         
