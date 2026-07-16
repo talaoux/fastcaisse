@@ -30,8 +30,7 @@ class RegisteredUserController extends Controller
             'username' => ['required', 'string', 'max:255', 'unique:users,username'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'terms' => ['accepted'],
-            'avatar' => ['nullable', 'image', 'max:2048'],
+            'phone' => ['nullable', 'string', 'max:20'],
         ]);
 
         $userData = [
@@ -40,13 +39,8 @@ class RegisteredUserController extends Controller
             'email' => $validated['email'],
             'role' => 'admin',
             'password' => $validated['password'],
+            'phone' => $validated['phone'] ?? null,
         ];
-
-        // Handle avatar upload
-        if ($request->hasFile('avatar')) {
-            $avatarPath = $request->file('avatar')->store('avatars', 'public');
-            $userData['avatar'] = $avatarPath;
-        }
 
         $user = User::create($userData);
 
